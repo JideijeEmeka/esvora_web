@@ -1,0 +1,117 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Manrope:wght@200..800&family=Outfit:wght@100..900&display=swap');
+@import "tailwindcss";
+
+
+@theme {
+  --color-primary: #680093;
+}
+
+*{
+  font-family: "DM Sans", sans-serif;
+  scrollbar-width: thin;
+  scrollbar-color: #680093 #FFFFFF;
+}
+
+body{
+  color: #000000;
+  background-color: #FFFFFF;
+}
+
+/* Hide scrollbar for horizontal scroll */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* OTP Input Styles */
+.otp-container .otp-input:focus {
+  border: 0.85px solid #680093 !important;
+  background-color: #FFFFFF !important;
+  box-shadow: 0 0 0 3px rgba(104, 0, 147, 0.1);
+}
+
+.otp-container .otp-input:not(:placeholder-shown) {
+  border: 0.85px solid rgba(104, 0, 147, 0.6);
+  background-color: #FFFFFF;
+}
+/* PhoneInput Custom Styles */
+.phone-input-container {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.phone-input-container .PhoneInputInput {
+  flex: 1;
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 16px;
+  border: 1px solid #E0E0E0;
+  border-radius: 9999px;
+  outline: none;
+  background-color: white;
+}
+
+.phone-input-container .PhoneInputInput:focus {
+  outline: none;
+  border-color: #680093;
+}
+
+.phone-input-container .PhoneInputInput::placeholder {
+  color: #9CA3AF;
+}
+
+.phone-input-container .PhoneInputCountry {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  border: 1px solid #E0E0E0;
+  border-radius: 9999px;
+  background-color: white;
+  min-width: 20px;
+  cursor: pointer;
+}
+
+.phone-input-container .PhoneInputCountryIcon {
+  width: 20px;
+  height: 15px;
+  margin-right: 8px;
+  border-radius: 2px;
+}
+
+.phone-input-container .PhoneInputCountrySelect {
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  cursor: pointer;
+  color: #374151;
+}
+
+.phone-input-container .PhoneInputCountrySelectArrow {
+  opacity: 1;
+  margin-left: 4px;
+  margin-bottom: 4px;
+  width: 8px;
+  height: 8px;
+  color: #6B7280;
+}
+
+/* Hide number input spinner buttons */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
