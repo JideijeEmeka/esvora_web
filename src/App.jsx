@@ -39,6 +39,16 @@ import AddPropertyHouseRegulationsFormView from './views/add_property_house_regu
 import AddPropertyBedroomsView from './views/add_property_bedrooms_view'
 import AddPropertyImagesView from './views/add_property_images_view'
 import AddPropertySummaryInfoView from './views/add_property_summary_info_view'
+import AddPropertyAgreementAndPolicyView from './views/add_property_agreement_and_policy_view'
+import AddPropertySuccessView from './views/add_property_success_view'
+import AddShortletView from './views/add_shortlet_view'
+import AddShortletBasicInfoFormView from './views/add_shortlet_basic_info_form_view'
+import AddShortletFeaturesView from './views/add_shortlet_features_view'
+import AddShortletPriceView from './views/add_shortlet_price_view'
+import AddShortletHouseRegulationsView from './views/add_shortlet_house_regulations_view'
+import AddShortletBedroomsView from './views/add_shortlet_bedrooms_view'
+import AddShortletImagesView from './views/add_shortlet_images_view'
+import AddShortletSummaryInfoView from './views/add_shortlet_summary_info_view'
 
 const App = () => {
   return (
@@ -76,6 +86,16 @@ const App = () => {
         <Route path="/property-owner/add-property/bedrooms" element={<AddPropertyBedroomsView />} />
         <Route path="/property-owner/add-property/images" element={<AddPropertyImagesView />} />
         <Route path="/property-owner/add-property/summary" element={<AddPropertySummaryInfoView />} />
+        <Route path="/property-owner/add-property/agreement" element={<AddPropertyAgreementAndPolicyView />} />
+        <Route path="/property-owner/add-property/success" element={<AddPropertySuccessView />} />
+        <Route path="/property-owner/shortlet" element={<AddShortletView />} />
+        <Route path="/property-owner/add-shortlet/basic-info" element={<AddShortletBasicInfoFormView />} />
+        <Route path="/property-owner/add-shortlet/features" element={<AddShortletFeaturesView />} />
+        <Route path="/property-owner/add-shortlet/price" element={<AddShortletPriceView />} />
+        <Route path="/property-owner/add-shortlet/house-regulations" element={<AddShortletHouseRegulationsView />} />
+        <Route path="/property-owner/add-shortlet/bedrooms" element={<AddShortletBedroomsView />} />
+        <Route path="/property-owner/add-shortlet/images" element={<AddShortletImagesView />} />
+        <Route path="/property-owner/add-shortlet/summary" element={<AddShortletSummaryInfoView />} />
         <Route path="/favourites" element={<FavoritesView />} />
         <Route path="/rate-property/:id?" element={<RatePropertyView />} />
         <Route path="/schedule-inspection/:id?" element={<ScheduleInspectionView />} />
