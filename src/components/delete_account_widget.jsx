@@ -1,0 +1,84 @@
+import React, { useEffect } from 'react'
+import { HelpCircle } from 'lucide-react'
+
+const DeleteAccountWidget = ({
+	isOpen,
+	onClose,
+	onConfirm,
+	userName = 'emmanuel'
+}) => {
+	useEffect(() => {
+		if (isOpen) {
+			const originalOverflow = document.body.style.overflow
+			const originalPosition = document.body.style.position
+			const originalTop = document.body.style.top
+			const scrollY = window.scrollY
+
+			document.body.style.overflow = 'hidden'
+			document.body.style.position = 'fixed'
+			document.body.style.top = `-${scrollY}px`
+			document.body.style.width = '100%'
+
+			return () => {
+				document.body.style.overflow = originalOverflow || ''
+				document.body.style.position = originalPosition || ''
+				document.body.style.top = originalTop || ''
+				document.body.style.width = ''
+				window.scrollTo(0, scrollY)
+			}
+		}
+	}, [isOpen])
+
+	if (!isOpen) return null
+
+	const displayName = userName ? userName.charAt(0).toLowerCase() + userName.slice(1) : 'there'
+
+	return (
+		<div
+			className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm'
+			onClick={onClose}
+		>
+			<div
+				className='bg-white rounded-2xl shadow-2xl w-[90%] max-w-md overflow-hidden p-8 text-center'
+				onClick={(e) => e.stopPropagation()}
+			>
+				{/* Icon: purple circle + question mark */}
+				<div className='flex justify-center mb-6'>
+					<div className='w-16 h-16 rounded-full border-2 border-primary/30 flex items-center justify-center bg-primary'>
+						<HelpCircle className='w-7 h-7 text-white stroke-2' />
+					</div>
+				</div>
+
+				<h2 className='text-[22px] font-bold text-gray-900 mb-3'>
+					Hey! {displayName}, we hate to see you go
+				</h2>
+
+				<p className='text-[15px] text-gray-600 leading-relaxed mb-8'>
+					Are you sure you want to proceed with this? once done you cannot recover your account.
+				</p>
+
+				<div className='flex gap-3'>
+					<button
+						type='button'
+						onClick={onClose}
+						className='flex-1 py-3 px-6 rounded-xl border border-gray-300 bg-white text-gray-700 font-medium text-[16px] hover:bg-gray-50 transition-colors'
+					>
+						No, Cancel
+					</button>
+					<button
+						type='button'
+						onClick={() => {
+							onConfirm?.()
+							onClose?.()
+						}}
+						className='flex-1 py-3 px-6 rounded-xl bg-red-600 text-white font-medium text-[16px] hover:bg-red-700 transition-colors'
+					>
+						Delete account
+					</button>
+				</div>
+			</div>
+		</div>
+	)
+}
+
+export default DeleteAccountWidget
