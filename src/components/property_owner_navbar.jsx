@@ -18,8 +18,7 @@ const PropertyOwnerNavbar = () => {
 
 		// Default based on pathname
 		if (location.pathname === '/property-owner/listings') return 'listings'
-		if (location.pathname === '/property-owner/shortlet') return 'shortlet'
-		if (location.pathname === '/property-owner/requests') return 'requests'
+		if (location.pathname.startsWith('/property-owner/requests')) return 'requests'
 		if (location.pathname === '/property-owner/message') return 'message'
 		if (location.pathname === '/property-owner') return 'discover'
 		return 'discover'
@@ -31,9 +30,7 @@ const PropertyOwnerNavbar = () => {
 	useEffect(() => {
 		if (location.pathname === '/property-owner/listings') {
 			sessionStorage.setItem('propertyOwnerActiveTab', 'listings')
-		} else if (location.pathname === '/property-owner/shortlet') {
-			sessionStorage.setItem('propertyOwnerActiveTab', 'shortlet')
-		} else if (location.pathname === '/property-owner/requests') {
+		} else 		if (location.pathname.startsWith('/property-owner/requests')) {
 			sessionStorage.setItem('propertyOwnerActiveTab', 'requests')
 		} else if (location.pathname === '/property-owner/message') {
 			sessionStorage.setItem('propertyOwnerActiveTab', 'message')
@@ -48,7 +45,8 @@ const PropertyOwnerNavbar = () => {
 	}
 
 	return (
-		<div className='flex justify-between fixed top-0 left-0 z-50 bg-white w-full items-center px-6 md:px-16 lg:px-20 py-5 shadow-md'>
+		<div className='flex justify-between fixed top-0 left-0 z-50 
+		    bg-white w-full items-center px-6 md:px-16 lg:px-20 py-5 shadow-md'>
 			<Link to='/property-owner' className='max-md:flex-1'>
 				<img src={logo} alt='logo' className='w-36 h-auto' />
 			</Link>
@@ -151,6 +149,7 @@ const PropertyOwnerNavbar = () => {
 				</Link>
 				<div className='w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden'>
 					<img
+						onClick={() => navigate('/profile')}
 						src='https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100'
 						alt='Profile'
 						className='w-full h-full object-cover'
