@@ -13,7 +13,7 @@ const LISTING_BY_ID = {
 			'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400'
 		],
 		status: 'Rent',
-		price: '€120,500',
+		price: '₦120,500',
 		title: '3 Bedroom modern duplex apartment',
 		address: '22, Apapa Estate, Ikoyi District, Lagos, Nigeria',
 		description:
@@ -37,7 +37,7 @@ const LISTING_BY_ID = {
 			'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400'
 		],
 		status: 'Shortlet',
-		price: '€95,000',
+		price: '₦95,000',
 		title: '3 bedroom luxury apartment',
 		address: 'Victoria Island, Lagos, Nigeria',
 		description: 'Luxury shortlet with modern amenities.',
@@ -50,7 +50,7 @@ const LISTING_BY_ID = {
 	3: {
 		images: ['https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800'],
 		status: 'Sale',
-		price: '€150,000',
+		price: '₦150,000',
 		title: '5 bedroom detached house',
 		address: 'Lekki, Lagos, Nigeria',
 		description: 'Spacious detached house for sale.',
@@ -63,7 +63,7 @@ const LISTING_BY_ID = {
 	4: {
 		images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'],
 		status: 'Rent',
-		price: '€80,000',
+		price: '₦80,000',
 		title: '2 bedroom cozy apartment',
 		address: 'Surulere, Lagos, Nigeria',
 		description: 'Cozy 2-bedroom apartment.',
@@ -76,7 +76,7 @@ const LISTING_BY_ID = {
 	5: {
 		images: ['https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800'],
 		status: 'Shortlet',
-		price: '€110,000',
+		price: '₦110,000',
 		title: '3 bedroom modern townhouse',
 		address: 'Gbagada, Lagos, Nigeria',
 		description: 'Modern townhouse for shortlet.',

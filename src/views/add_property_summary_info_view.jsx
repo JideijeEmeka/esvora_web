@@ -19,13 +19,13 @@ const AddPropertySummaryInfoView = () => {
 		features: ['Wifi', 'Furniture'],
 		fees: {
 			rentageType: 'Annually',
-			rentageFee: '$250,000.00',
+			rentageFee: '₦250,000.00',
 			otherFees: [
 				{ description: 'Rentage fee', amount: '₦ 200,000.00' },
 				{ description: 'Security fee', amount: '₦ 2,000.00' },
 				{ description: 'Electricity fee', amount: '₦ 10,000.00' }
 			],
-			total: '$300,000.00'
+			total: '₦300,000.00'
 		},
 		regulations: ['Check in at 10:00PM', 'No fighting'],
 		beddings: {

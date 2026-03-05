@@ -25,7 +25,7 @@ const ExploreView = () => {
     {
       id: 1,
       image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400',
-      price: '€120,500',
+      price: '₦120,500',
       priceValue: 120500,
       description: '4 bedroom modern bungalow apartment',
       location: 'Ikoyi, Lagos, Nigeria',
@@ -39,7 +39,7 @@ const ExploreView = () => {
     {
       id: 2,
       image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400',
-      price: '€95,000',
+      price: '₦95,000',
       priceValue: 95000,
       description: '3 bedroom luxury apartment',
       location: 'Victoria Island, Lagos, Nigeria',
@@ -53,7 +53,7 @@ const ExploreView = () => {
     {
       id: 3,
       image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400',
-      price: '€150,000',
+      price: '₦150,000',
       priceValue: 150000,
       description: '5 bedroom detached house',
       location: 'Lekki, Lagos, Nigeria',
@@ -67,7 +67,7 @@ const ExploreView = () => {
     {
       id: 4,
       image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400',
-      price: '€80,000',
+      price: '₦80,000',
       priceValue: 80000,
       description: '2 bedroom cozy apartment',
       location: 'Surulere, Lagos, Nigeria',
@@ -81,7 +81,7 @@ const ExploreView = () => {
     {
       id: 5,
       image: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=400',
-      price: '€110,000',
+      price: '₦110,000',
       priceValue: 110000,
       description: '3 bedroom modern townhouse',
       location: 'Gbagada, Lagos, Nigeria',
@@ -95,7 +95,7 @@ const ExploreView = () => {
     {
       id: 6,
       image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400',
-      price: '€135,000',
+      price: '₦135,000',
       priceValue: 135000,
       description: '4 bedroom contemporary villa',
       location: 'Banana Island, Lagos, Nigeria',
@@ -109,7 +109,7 @@ const ExploreView = () => {
     {
       id: 7,
       image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400',
-      price: '€105,000',
+      price: '₦105,000',
       priceValue: 105000,
       description: '3 bedroom penthouse apartment',
       location: 'Yaba, Lagos, Nigeria',
@@ -123,7 +123,7 @@ const ExploreView = () => {
     {
       id: 8,
       image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400',
-      price: '€90,000',
+      price: '₦90,000',
       priceValue: 90000,
       description: '2 bedroom studio apartment',
       location: 'Ikeja, Lagos, Nigeria',
@@ -137,7 +137,7 @@ const ExploreView = () => {
     {
       id: 9,
       image: 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=400',
-      price: '€125,000',
+      price: '₦125,000',
       priceValue: 125000,
       description: '4 bedroom duplex',
       location: 'Magodo, Lagos, Nigeria',
@@ -151,7 +151,7 @@ const ExploreView = () => {
     {
       id: 10,
       image: 'https://images.unsplash.com/photo-1600585154526-990dbe4eb5a3?w=400',
-      price: '€115,000',
+      price: '₦115,000',
       priceValue: 115000,
       description: '3 bedroom bungalow',
       location: 'Isolo, Lagos, Nigeria',
@@ -165,7 +165,7 @@ const ExploreView = () => {
     {
       id: 11,
       image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400',
-      price: '€200,000',
+      price: '₦200,000',
       priceValue: 200000,
       description: '5 bedroom luxury duplex',
       location: 'Wuse, Abuja, Nigeria',
@@ -179,7 +179,7 @@ const ExploreView = () => {
     {
       id: 12,
       image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400',
-      price: '€75,000',
+      price: '₦75,000',
       priceValue: 75000,
       description: '2 bedroom apartment',
       location: 'Port Harcourt, Rivers, Nigeria',
@@ -193,7 +193,7 @@ const ExploreView = () => {
     {
       id: 13,
       image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400',
-      price: '€180,000',
+      price: '₦180,000',
       priceValue: 180000,
       description: '4 bedroom modern house',
       location: 'Kano, Kano, Nigeria',
@@ -207,7 +207,7 @@ const ExploreView = () => {
     {
       id: 14,
       image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400',
-      price: '€65,000',
+      price: '₦65,000',
       priceValue: 65000,
       description: '1 bedroom studio',
       location: 'Ibadan, Oyo, Nigeria',
@@ -221,7 +221,7 @@ const ExploreView = () => {
     {
       id: 15,
       image: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=400',
-      price: '€140,000',
+      price: '₦140,000',
       priceValue: 140000,
       description: '3 bedroom bungalow',
       location: 'Benin City, Edo, Nigeria',
@@ -235,7 +235,7 @@ const ExploreView = () => {
     {
       id: 16,
       image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400',
-      price: '€220,000',
+      price: '₦220,000',
       priceValue: 220000,
       description: '6 bedroom mansion',
       location: 'Asokoro, Abuja, Nigeria',
@@ -249,7 +249,7 @@ const ExploreView = () => {
     {
       id: 17,
       image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400',
-      price: '€85,000',
+      price: '₦85,000',
       priceValue: 85000,
       description: '2 bedroom apartment',
       location: 'Kaduna, Kaduna, Nigeria',
@@ -263,7 +263,7 @@ const ExploreView = () => {
     {
       id: 18,
       image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400',
-      price: '€95,000',
+      price: '₦95,000',
       priceValue: 95000,
       description: '3 bedroom townhouse',
       location: 'Enugu, Enugu, Nigeria',
@@ -277,7 +277,7 @@ const ExploreView = () => {
     {
       id: 19,
       image: 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=400',
-      price: '€100,000',
+      price: '₦100,000',
       priceValue: 100000,
       description: '3 bedroom duplex',
       location: 'Awka, Anambra, Nigeria',
@@ -291,7 +291,7 @@ const ExploreView = () => {
     {
       id: 20,
       image: 'https://images.unsplash.com/photo-1600585154526-990dbe4eb5a3?w=400',
-      price: '€70,000',
+      price: '₦70,000',
       priceValue: 70000,
       description: '2 bedroom bungalow',
       location: 'Calabar, Cross River, Nigeria',
@@ -305,7 +305,7 @@ const ExploreView = () => {
     {
       id: 21,
       image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400',
-      price: '€160,000',
+      price: '₦160,000',
       priceValue: 160000,
       description: '4 bedroom villa',
       location: 'Maitama, Abuja, Nigeria',
@@ -319,7 +319,7 @@ const ExploreView = () => {
     {
       id: 22,
       image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400',
-      price: '€88,000',
+      price: '₦88,000',
       priceValue: 88000,
       description: '2 bedroom apartment',
       location: 'Jos, Plateau, Nigeria',
@@ -333,7 +333,7 @@ const ExploreView = () => {
     {
       id: 23,
       image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400',
-      price: '€130,000',
+      price: '₦130,000',
       priceValue: 130000,
       description: '4 bedroom duplex',
       location: 'Onitsha, Anambra, Nigeria',

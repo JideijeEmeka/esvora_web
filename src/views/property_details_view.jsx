@@ -54,7 +54,7 @@ const PropertyDetailsView = () => {
     title: '3 Bedroom duplex apartment',
     location: 'Lagos, Nigeria',
     fullAddress: '3 bed semi-detached house for rent Coronation Avenue, Wirralord, Cheshire CW7',
-    price: '$3,000',
+    price: '₦3,000',
     priceNGN: 400000,
     bedrooms: 3,
     bathrooms: 3,

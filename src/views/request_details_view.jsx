@@ -7,7 +7,7 @@ const REQUEST_DETAILS_BY_ID = {
 	1: {
 		property: {
 			image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800',
-			price: '€120,500',
+			price: '₦120,500',
 			description: '4 bedroom modern bungalow apartment',
 			location: 'Ikoyi, Lagos, Nigeria'
 		},
@@ -25,7 +25,7 @@ const REQUEST_DETAILS_BY_ID = {
 	2: {
 		property: {
 			image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800',
-			price: '€150,000',
+			price: '₦150,000',
 			description: '5 bedroom detached house',
 			location: 'Lekki, Lagos, Nigeria'
 		},
@@ -42,7 +42,7 @@ const REQUEST_DETAILS_BY_ID = {
 	3: {
 		property: {
 			image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800',
-			price: '€95,000',
+			price: '₦95,000',
 			description: '3 bedroom luxury apartment',
 			location: 'Victoria Island, Lagos, Nigeria'
 		},

@@ -8,7 +8,7 @@ const SAMPLE_PROPERTIES = [
 	{
 		id: 1,
 		image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400',
-		price: '€120,500',
+		price: '₦120,500',
 		description: '4 bedroom modern bungalow apartment',
 		location: 'Ikoyi, Lagos, Nigeria',
 		status: 'Rent'
@@ -16,7 +16,7 @@ const SAMPLE_PROPERTIES = [
 	{
 		id: 2,
 		image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400',
-		price: '€95,000',
+		price: '₦95,000',
 		description: '3 bedroom luxury apartment',
 		location: 'Victoria Island, Lagos, Nigeria',
 		status: 'Shortlet'
@@ -24,7 +24,7 @@ const SAMPLE_PROPERTIES = [
 	{
 		id: 3,
 		image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400',
-		price: '€150,000',
+		price: '₦150,000',
 		description: '5 bedroom detached house',
 		location: 'Lekki, Lagos, Nigeria',
 		status: 'Sale'
@@ -32,7 +32,7 @@ const SAMPLE_PROPERTIES = [
 	{
 		id: 4,
 		image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400',
-		price: '€80,000',
+		price: '₦80,000',
 		description: '2 bedroom cozy apartment',
 		location: 'Surulere, Lagos, Nigeria',
 		status: 'Rent'
@@ -40,7 +40,7 @@ const SAMPLE_PROPERTIES = [
 	{
 		id: 5,
 		image: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=400',
-		price: '€110,000',
+		price: '₦110,000',
 		description: '3 bedroom modern townhouse',
 		location: 'Gbagada, Lagos, Nigeria',
 		status: 'Shortlet'

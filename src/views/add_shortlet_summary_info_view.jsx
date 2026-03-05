@@ -18,7 +18,7 @@ const AddShortletSummaryInfoView = () => {
 		},
 		features: ['Wifi', 'Furniture'],
 		fees: {
-			price: '$250,000.00',
+			price: '₦250,000.00',
 			duration: '2 nights',
 			from: 'Tue, Dec 25',
 			to: 'Thurs, Dec 28'

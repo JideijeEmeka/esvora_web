@@ -37,7 +37,7 @@ const QUICK_TAGS = ['It is amazing', 'I love it', 'Looks super great', 'Greate a
 const DEFAULT_PROPERTY = {
 	id: 1,
 	image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400',
-	price: '€120,500',
+	price: '₦120,500',
 	description: '4 bedroom modern bungalow apartment',
 	location: 'Ikoyi, Lagos, Nigeria'
 }

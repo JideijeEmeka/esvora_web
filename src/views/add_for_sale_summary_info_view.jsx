@@ -16,11 +16,11 @@ const AddForSaleSummaryInfoView = () => {
 		},
 		features: ['Wifi', 'Furniture'],
 		fees: {
-			sellingPrice: '$250,000.00',
+			sellingPrice: '₦250,000.00',
 			otherFees: [
 				{ name: 'Environmental fee', amount: 'N 200,000.00' }
 			],
-			total: '$250,000.00'
+			total: '₦250,000.00'
 		},
 		documents: ['Deed of transfer', 'Certificate of occupancy'],
 		beddings: {

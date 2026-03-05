@@ -10,10 +10,10 @@ import DateAndTimeWidget from '../components/date_and_time_widget'
 import Divider from '../components/divider'
 
 const DEFAULT_LISTINGS = [
-	{ id: 1, image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400', price: '€120,500', description: '4 bedroom modern bungalow apartment', location: 'Ikoyi, Lagos, Nigeria', available: true },
-	{ id: 2, image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400', price: '€95,000', description: '3 bedroom luxury apartment', location: 'Victoria Island, Lagos, Nigeria', available: true },
-	{ id: 3, image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400', price: '€150,000', description: '5 bedroom detached house', location: 'Lekki, Lagos, Nigeria', available: true },
-	{ id: 4, image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400', price: '€80,000', description: '2 bedroom cozy apartment', location: 'Surulere, Lagos, Nigeria', available: true }
+	{ id: 1, image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400', price: '₦120,500', description: '4 bedroom modern bungalow apartment', location: 'Ikoyi, Lagos, Nigeria', available: true },
+	{ id: 2, image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400', price: '₦95,000', description: '3 bedroom luxury apartment', location: 'Victoria Island, Lagos, Nigeria', available: true },
+	{ id: 3, image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400', price: '₦150,000', description: '5 bedroom detached house', location: 'Lekki, Lagos, Nigeria', available: true },
+	{ id: 4, image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400', price: '₦80,000', description: '2 bedroom cozy apartment', location: 'Surulere, Lagos, Nigeria', available: true }
 ]
 
 const SAMPLE_REVIEWS = [

@@ -44,7 +44,7 @@ const SAMPLE_PROPERTIES = [
 	{
 		id: 1,
 		image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400',
-		price: '€120,500',
+		price: '₦120,500',
 		description: '4 bedroom modern bungalow apartment',
 		location: 'Ikoyi, Lagos, Nigeria',
 		available: true
@@ -52,7 +52,7 @@ const SAMPLE_PROPERTIES = [
 	{
 		id: 2,
 		image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400',
-		price: '€120,500',
+		price: '₦120,500',
 		description: '4 bedroom modern bungalow apartment',
 		location: 'Ikoyi, Lagos, Nigeria',
 		available: true
@@ -60,7 +60,7 @@ const SAMPLE_PROPERTIES = [
 	{
 		id: 3,
 		image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400',
-		price: '€120,500',
+		price: '₦120,500',
 		description: '4 bedroom modern bungalow apartment',
 		location: 'Ikoyi, Lagos, Nigeria',
 		available: true
@@ -68,7 +68,7 @@ const SAMPLE_PROPERTIES = [
 	{
 		id: 4,
 		image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400',
-		price: '€120,500',
+		price: '₦120,500',
 		description: '4 bedroom modern bungalow apartment',
 		location: 'Ikoyi, Lagos, Nigeria',
 		available: true
@@ -76,7 +76,7 @@ const SAMPLE_PROPERTIES = [
 	{
 		id: 5,
 		image: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=400',
-		price: '€120,500',
+		price: '₦120,500',
 		description: '4 bedroom modern bungalow apartment',
 		location: 'Ikoyi, Lagos, Nigeria',
 		available: true
