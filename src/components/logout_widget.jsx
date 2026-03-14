@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react'
 import { HelpCircle } from 'lucide-react'
+import Loader from './loader'
 
-const LogoutWidget = ({ isOpen, onClose, onConfirm }) => {
+const LogoutWidget = ({ isOpen, onClose, onConfirm, isLoading }) => {
 	useEffect(() => {
 		if (isOpen) {
 			const originalOverflow = document.body.style.overflow
@@ -62,13 +63,10 @@ const LogoutWidget = ({ isOpen, onClose, onConfirm }) => {
 					</button>
 					<button
 						type='button'
-						onClick={() => {
-							onConfirm?.()
-							onClose?.()
-						}}
-						className='flex-1 py-3 px-6 rounded-xl bg-primary text-white font-medium text-[16px] hover:bg-primary/90 transition-colors'
+						onClick={() => onConfirm?.()}
+						className='flex-1 inline-flex items-center justify-center py-3 px-6 rounded-xl bg-primary text-white font-medium text-[16px] hover:bg-primary/90 transition-colors'
 					>
-						Log out
+						Log out<span className='inline-flex ml-2'>{isLoading && <Loader size={20} color="#fff" className="shrink-0" />}</span>
 					</button>
 				</div>
 			</div>
