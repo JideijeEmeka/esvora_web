@@ -1,7 +1,14 @@
-import React from 'react'
+import React, { useEffect } from 'react'
+import { useSelector } from 'react-redux'
 import Navbar from './components/navbar'
-import { Routes, Route } from 'react-router-dom'
+import PropertyOwnerNavbar from './components/property_owner_navbar'
+import { Routes, Route, useLocation } from 'react-router-dom'
+import { store } from './redux/store'
+import { authApi } from './repository/auth_repository'
+import { updateAccount, selectCurrentAccount } from './redux/slices/accountSlice'
+import { getToken } from './lib/localStorage'
 import HomeView from './views/home_view'
+import InitializationView from './views/initialization_view'
 import { Toaster } from 'react-hot-toast'
 import LoginView from './views/auth/login_view'
 import HelpView from './views/help_view'
@@ -61,23 +68,49 @@ import AddForSaleDocumentsView from './views/add_for_sale_documents_view'
 import AddForSaleBedroomsView from './views/add_for_sale_bedrooms_view'
 import AddForSaleImagesView from './views/add_for_sale_images_view'
 import AddForSaleSummaryInfoView from './views/add_for_sale_summary_info_view'
+import CreatePasswordView from './views/auth/create_password_view'
+import UpdateNameView from './views/auth/update_name_view'
+import SetAvatarView from './views/auth/set_avatar_view'
+
+const AUTH_PATHS = ['/', '/sign-up', '/login', '/register', '/otp', '/create-password', '/update-name', '/set-avatar', '/change-password', '/forgot-password', '/reset-password', '/forgot-password-otp', '/reset-password-success']
 
 const App = () => {
+  const { pathname } = useLocation()
+  const account = useSelector(selectCurrentAccount)
+  const isAuthRoute = AUTH_PATHS.some((path) => pathname === path || pathname.startsWith(path + '/'))
+  const usePropertyOwnerNavbar = account?.landlord_dashboard === true
+
+  useEffect(() => {
+    if (!getToken()) return
+    store.dispatch(authApi.endpoints.getProfile.initiate()).then((res) => {
+      if (res.error) return
+      const data = res.data
+      const user = data?.data?.user ?? data?.user
+      if (user) {
+        store.dispatch(updateAccount(user))
+      }
+    })
+  }, [])
+
   return (
     <>
-      <Navbar />
+      {!isAuthRoute && (usePropertyOwnerNavbar ? <PropertyOwnerNavbar /> : <Navbar />)}
       <Routes>
+        <Route path="/" element={<InitializationView />} />
+        <Route path="/sign-up" element={<RegisterView />} />
         <Route path="/home" element={<HomeView />} />
         <Route path="/login" element={<LoginView />} />
         <Route path="/help" element={<HelpView />} />
-        <Route path="/register" element={<RegisterView />} />
         <Route path="/otp/:email" element={<OtpView />} />
+        <Route path="/create-password" element={<CreatePasswordView />} />
+        <Route path="/update-name" element={<UpdateNameView />} />
+        <Route path="/set-avatar" element={<SetAvatarView />} />
         <Route path="/change-password" element={<ChangePasswordView />} />
         <Route path="/forgot-password" element={<ForgotPasswordView />} />
         <Route path="/reset-password" element={<ResetPasswordView />} />
         <Route path="/forgot-password-otp/:email" element={<ForgotPasswordOtpView />} />
         <Route path="/reset-password-success" element={<ResetPasswordSuccessView />} />
-        <Route path="/property-owne" element={<ExploreView />} />
+        <Route path="/explore" element={<ExploreView />} />
         <Route path="/kyc" element={<KycView />} />
         <Route path="/kyc/form" element={<KycFormView />} />
         <Route path="/kyc/select-id" element={<KycSelectIdView />} />
@@ -89,7 +122,7 @@ const App = () => {
         <Route path="/property-details/:id" element={<PropertyDetailsView />} />
         <Route path="/reviews" element={<ReviewsView />} />
         <Route path="/my-properties" element={<MyPropertiesView />} />
-        <Route path="/" element={<PropertyOwnerView />} />
+        <Route path="/property-owner" element={<PropertyOwnerView />} />
         <Route path="/property-owner/requests" element={<RequestsView />} />
         <Route path="/property-owner/requests/:id" element={<RequestDetailsView />} />
         <Route path="/property-owner/listings" element={<AddPropertyView />} />
