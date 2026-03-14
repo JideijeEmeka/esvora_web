@@ -1,7 +1,7 @@
 import React from 'react'
 import { X } from 'lucide-react'
 
-const PaymentDetailsView = ({ transaction, onClose }) => {
+const PaymentDetailsView = ({ transaction, onClose, elevated }) => {
 	if (!transaction) return null
 
 	const getStatusStyles = (statusVariant) => {
@@ -21,12 +21,12 @@ const PaymentDetailsView = ({ transaction, onClose }) => {
 		<>
 			{/* Backdrop */}
 			<div
-				className='fixed inset-0 bg-black/20 z-40 transition-opacity'
+				className={`fixed inset-0 bg-black/20 transition-opacity ${elevated ? 'z-[60]' : 'z-40'}`}
 				onClick={onClose}
 			/>
 
 			{/* Slide-in panel */}
-			<div className='fixed right-0 top-0 bottom-0 w-full max-w-[480px] bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out overflow-y-auto'>
+			<div className={`fixed right-0 top-0 bottom-0 w-full max-w-[480px] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out overflow-y-auto ${elevated ? 'z-[70]' : 'z-50'}`}>
 				<div className='p-6'>
 					{/* Header */}
 					<div className='flex items-center justify-between mb-6'>
