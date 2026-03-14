@@ -1,16 +1,27 @@
-import { MenuIcon, XIcon, Heart, Bell } from 'lucide-react'
+import { MenuIcon, XIcon, Heart, Bell, User } from 'lucide-react'
 import React, { useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useState } from 'react'
+import { useSelector } from 'react-redux'
+import { selectCurrentAccount } from '../redux/slices/accountSlice'
 import logo from '../assets/logo.png'
 import NotificationWidget from './notification_widget'
 
-const Navbar = () => {
+const DICEBEAR_ADVENTURER = 'https://api.dicebear.com/9.x/adventurer/svg'
 
+function getAvatarSrc(avatar) {
+	if (!avatar || typeof avatar !== 'string') return null
+	if (avatar.startsWith('data:') || avatar.startsWith('http')) return avatar
+	return `${DICEBEAR_ADVENTURER}?seed=${encodeURIComponent(avatar)}`
+}
+
+const Navbar = () => {
+  const account = useSelector(selectCurrentAccount)
   const [isOpen, setIsOpen] = useState(false)
   const [isNotificationOpen, setIsNotificationOpen] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
+  const avatarSrc = getAvatarSrc(account?.avatar ?? account?.avatar_url ?? account?.profile_image)
   
   // Get active tab from sessionStorage or determine from pathname
   const getActiveTab = () => {
@@ -163,7 +174,25 @@ const Navbar = () => {
       <button className='bg-primary text-white px-3 py-2 text-[16px] max-md:hidden
          hover:bg-primary/80 hover:scale-105 transition rounded-full font-medium cursor-pointer'>List a property</button>
         <Link to="/help" className='max-md:hidden text-[16px] font-medium'>Help</Link>
-        <Link to="/login" className='max-md:hidden text-[16px] font-medium'>Log in</Link>
+        {account && (
+          <Link
+            to="/profile"
+            onClick={() => { setIsOpen(false); handleTabClick('profile') }}
+            className={`w-10 h-10 min-w-10 min-h-10 rounded-full overflow-hidden border-2 shrink-0 bg-gray-100 flex items-center justify-center ring-2 transition ${
+              location.pathname === '/profile'
+                ? 'border-primary ring-primary/50'
+                : 'border-gray-200 ring-transparent hover:ring-primary/30'
+            }`}
+            title='Profile'
+            aria-label='Profile'
+          >
+            {avatarSrc ? (
+              <img src={avatarSrc} alt="" className='w-full h-full object-cover' />
+            ) : (
+              <User className='w-6 h-6 text-gray-500' />
+            )}
+          </Link>
+        )}
       </div>
 
       <MenuIcon className='max-md:ml-4 md:hidden w-8 h-8 cursor-pointer' 
