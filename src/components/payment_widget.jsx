@@ -1,10 +1,28 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 import Divider from './divider'
 
+const RENTAGE_LABELS = {
+	daily: 'per day',
+	weekly: 'per week',
+	monthly: 'per month',
+	yearly: 'per year'
+}
+
+const formatAmount = (n) => `NGN ${Number(n ?? 0).toLocaleString()}.00`
+
 const PaymentWidget = ({ paymentInfo }) => {
-	const totalPayment = useMemo(() => {
-		return Object.values(paymentInfo).reduce((sum, val) => sum + val, 0)
-	}, [paymentInfo])
+	if (!paymentInfo) return null
+
+	// Use price model: { total, other_fees, rentage_fee, rentage_type }
+	const rentageFee = paymentInfo.rentage_fee ?? paymentInfo.rent ?? 0
+	const rentageType = (paymentInfo.rentage_type ?? 'monthly').toLowerCase()
+	const otherFees = Array.isArray(paymentInfo.other_fees) ? paymentInfo.other_fees : []
+	const otherFeesSum = otherFees.reduce(
+		(sum, f) => sum + Number(f.amount ?? f.value ?? 0),
+		0
+	)
+	const total = paymentInfo.total ?? (rentageFee + otherFeesSum)
+	const rentageLabel = RENTAGE_LABELS[rentageType] ?? rentageType
 
 	return (
 		<div className='mb-8'>
@@ -15,58 +33,31 @@ const PaymentWidget = ({ paymentInfo }) => {
 			<div className='border border-gray-200 rounded-3xl p-6'>
 				<div className='space-y-4'>
 					<div className='flex flex-col justify-between items-start'>
-						<span className='text-[16px] text-gray-900'>Rentage/year</span>
+						<span className='text-[16px] text-gray-900'>
+							Rentage ({rentageLabel})
+						</span>
 						<span className='text-[16px] font-medium text-gray-500 mt-2'>
-							NGN {paymentInfo.rent.toLocaleString()}.00
+							{formatAmount(rentageFee)}
 						</span>
 					</div>
-					<Divider width='full' />
-					<div className='flex flex-col justify-between items-start'>
-						<span className='text-[16px] text-gray-700'>Electricity fee</span>
-						<span className='text-[16px] font-medium text-gray-500 mt-2'>
-							NGN {paymentInfo.electricity.toLocaleString()}.00
-						</span>
-					</div>
-					{paymentInfo.waste !== undefined && (
-						<>
+					{otherFees.map((fee, i) => (
+						<React.Fragment key={i}>
 							<Divider width='full' />
 							<div className='flex flex-col justify-between items-start'>
-								<span className='text-[16px] text-gray-700'>Waste fee</span>
+								<span className='text-[16px] text-gray-700'>
+									{fee.name ?? fee.label ?? `Fee ${i + 1}`}
+								</span>
 								<span className='text-[16px] font-medium text-gray-500 mt-2'>
-									NGN {paymentInfo.waste.toLocaleString()}.00
+									{formatAmount(fee.amount ?? fee.value)}
 								</span>
 							</div>
-						</>
-					)}
-					{paymentInfo.maintenance !== undefined && (
-						<>
-							<Divider width='full' />
-							<div className='flex flex-col justify-between items-start'>
-								<span className='text-[16px] text-gray-700'>Maintan fee</span>
-								<span className='text-[16px] font-medium text-gray-500 mt-2'>
-									NGN {paymentInfo.maintenance.toLocaleString()}.00
-								</span>
-							</div>
-						</>
-					)}
+						</React.Fragment>
+					))}
 					<Divider width='full' />
-					<div className='flex flex-col justify-between items-start'>
-						<span className='text-[16px] text-gray-700'>Security fee</span>
-						<span className='text-[16px] font-medium text-gray-500 mt-2'>
-							NGN {paymentInfo.security.toLocaleString()}.00
-						</span>
-					</div>
-					<Divider width='full' />
-					<div className='flex flex-col justify-between items-start'>
-						<span className='text-[16px] text-gray-700'>Others</span>
-						<span className='text-[16px] font-medium text-gray-500 mt-2'>
-							NGN {paymentInfo.others.toLocaleString()}.00
-						</span>
-					</div>
 					<div className='border-t border-gray-300 pt-4 flex flex-col justify-between items-start'>
 						<span className='text-[18px] font-semibold text-gray-700'>Total</span>
 						<span className='text-[20px] font-bold text-gray-500 mt-2'>
-							NGN {totalPayment.toLocaleString()}.00
+							{formatAmount(total)}
 						</span>
 					</div>
 				</div>
