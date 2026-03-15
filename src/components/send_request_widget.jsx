@@ -5,17 +5,31 @@ import Divider from './divider'
 
 const URGENCY_OPTIONS = [
 	{ value: '', label: 'Select choice' },
-	{ value: 'low', label: 'Low' },
-	{ value: 'medium', label: 'Medium' },
-	{ value: 'high', label: 'High' }
+	{ value: 'not_urgent', label: 'Not urgent' },
+	{ value: 'urgent', label: 'Urgent' },
+	{ value: 'very_urgent', label: 'Very urgent' }
 ]
 
-const SendRequestWidget = ({ isOpen, onClose, property, onSubmit }) => {
-	const [fullName, setFullName] = useState('Osaite Emmanuel')
-	const [email, setEmail] = useState('emmanuelosaite@gmail.com')
-	const [phone, setPhone] = useState('09025471033')
+const getPropertyTypeStr = (p) => {
+	const pt = p?.property_type ?? p?.raw?.property_type
+	if (typeof pt === 'string') return pt
+	return pt?.name ?? pt?.slug ?? 'rent'
+}
+
+const SendRequestWidget = ({ isOpen, onClose, property, onSubmit, isSubmitting }) => {
+	const [fullName, setFullName] = useState('')
+	const [email, setEmail] = useState('')
+	const [phone, setPhone] = useState('')
 	const [urgency, setUrgency] = useState('')
-	const [message, setMessage] = useState('Hello')
+	const [message, setMessage] = useState('')
+	const [scheduleDate, setScheduleDate] = useState('')
+	const [checkInDate, setCheckInDate] = useState('')
+	const [checkOutDate, setCheckOutDate] = useState('')
+	const [adults, setAdults] = useState(1)
+	const [children, setChildren] = useState(0)
+
+	const propType = getPropertyTypeStr(property)?.toLowerCase?.() ?? 'rent'
+	const isShortlet = propType === 'shortlet'
 
 	// Prevent body scroll when modal is open (same pattern as filter_properties_widget)
 	useEffect(() => {
@@ -48,8 +62,18 @@ const SendRequestWidget = ({ isOpen, onClose, property, onSubmit }) => {
 
 	const handleSubmit = (e) => {
 		e.preventDefault()
-		if (onSubmit) onSubmit({ fullName, email, phone, urgency, message })
-		if (onClose) onClose()
+		onSubmit?.({
+			fullName,
+			email,
+			phone,
+			urgency: urgency || 'not_urgent',
+			message,
+			scheduleDate,
+			checkInDate,
+			checkOutDate,
+			adults,
+			children
+		})
 	}
 
 	if (!isOpen) return null
@@ -141,8 +165,8 @@ const SendRequestWidget = ({ isOpen, onClose, property, onSubmit }) => {
 									<select
 										value={urgency}
 										onChange={(e) => setUrgency(e.target.value)}
-										className='w-full px-4 py-3 pr-10 border border-gray-300 r
-										 ounded-full bg-gray-50 text-[14px] focus:outline-none 
+										className='w-full px-4 py-3 pr-10 border border-gray-300
+										 rounded-full bg-gray-50 text-[14px] focus:outline-none
 										 focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none'
 									>
 										{URGENCY_OPTIONS.map((opt) => (
@@ -153,12 +177,69 @@ const SendRequestWidget = ({ isOpen, onClose, property, onSubmit }) => {
 								</div>
 							</div>
 						</div>
+						{!isShortlet && (
+							<div>
+								<label className='block text-[14px] font-medium text-gray-700 mb-2'>Schedule date</label>
+								<input
+									type='date'
+									value={scheduleDate}
+									onChange={(e) => setScheduleDate(e.target.value)}
+									min={new Date().toISOString().slice(0, 10)}
+									className='w-full px-4 py-3 border border-gray-300 rounded-full bg-gray-50 text-[14px] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary accent-primary'
+								/>
+							</div>
+						)}
+						{isShortlet && (
+							<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+								<div>
+									<label className='block text-[14px] font-medium text-gray-700 mb-2'>Check-in date</label>
+									<input
+										type='date'
+										value={checkInDate}
+										onChange={(e) => setCheckInDate(e.target.value)}
+										min={new Date().toISOString().slice(0, 10)}
+										className='w-full px-4 py-3 border border-gray-300 rounded-full bg-gray-50 text-[14px] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary accent-primary'
+									/>
+								</div>
+								<div>
+									<label className='block text-[14px] font-medium text-gray-700 mb-2'>Check-out date</label>
+									<input
+										type='date'
+										value={checkOutDate}
+										onChange={(e) => setCheckOutDate(e.target.value)}
+										min={checkInDate || new Date().toISOString().slice(0, 10)}
+										className='w-full px-4 py-3 border border-gray-300 rounded-full bg-gray-50 text-[14px] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary accent-primary'
+									/>
+								</div>
+								<div>
+									<label className='block text-[14px] font-medium text-gray-700 mb-2'>Adults</label>
+									<input
+										type='number'
+										min={1}
+										value={adults}
+										onChange={(e) => setAdults(Math.max(1, parseInt(e.target.value, 10) || 1))}
+										className='w-full px-4 py-3 border border-gray-300 rounded-full bg-gray-50 text-[14px] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
+									/>
+								</div>
+								<div>
+									<label className='block text-[14px] font-medium text-gray-700 mb-2'>Children</label>
+									<input
+										type='number'
+										min={0}
+										value={children}
+										onChange={(e) => setChildren(Math.max(0, parseInt(e.target.value, 10) || 0))}
+										className='w-full px-4 py-3 border border-gray-300 rounded-full bg-gray-50 text-[14px] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
+									/>
+								</div>
+							</div>
+						)}
 						<div>
 							<label className='block text-[14px] font-medium text-gray-700 mb-2'>Message</label>
 							<textarea
 								value={message}
 								onChange={(e) => setMessage(e.target.value)}
 								rows={4}
+								placeholder={isShortlet ? 'Add a message (optional)' : 'Add a message (at least 10 characters)'}
 								className='w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-[14px] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none'
 							/>
 						</div>
@@ -183,10 +264,11 @@ const SendRequestWidget = ({ isOpen, onClose, property, onSubmit }) => {
 							</button>
 							<button
 								type='submit'
+								disabled={isSubmitting}
 								className='flex-1 px-4 py-3 rounded-full bg-primary text-white 
-								font-medium text-[16px] hover:bg-primary/90 transition-colors'
+								font-medium text-[16px] hover:bg-primary/90 disabled:opacity-50 transition-colors'
 							>
-								Send request
+								{isSubmitting ? 'Sending...' : 'Send request'}
 							</button>
 						</div>
 					</form>
