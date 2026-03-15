@@ -23,8 +23,11 @@ const Navbar = () => {
   const location = useLocation()
   const avatarSrc = getAvatarSrc(account?.avatar ?? account?.avatar_url ?? account?.profile_image)
   
-  // Get active tab from sessionStorage or determine from pathname
+  // Get active tab from pathname (for pages with their own nav state) or sessionStorage
   const getActiveTab = () => {
+    // When on favourites, no main nav item should be highlighted
+    if (location.pathname === '/favourites') return 'favourites'
+    
     const storedTab = sessionStorage.getItem('activeTab')
     if (storedTab) return storedTab
     
@@ -34,6 +37,8 @@ const Navbar = () => {
     if (location.pathname === '/shortlet') return 'shortlet'
     if (location.pathname === '/my-properties') return 'my-properties'
     if (location.pathname === '/property-owner') return 'property-owner'
+    if (location.pathname === '/messages') return 'message'
+    if (location.pathname === '/requests') return 'requests'
     if (location.pathname === '/profile') return 'profile'
     if (location.pathname === '/') return 'discover'
     return null
@@ -43,7 +48,9 @@ const Navbar = () => {
   
   // Update active tab when pathname changes (for direct navigation)
   useEffect(() => {
-    if (location.pathname === '/buy') {
+    if (location.pathname === '/favourites') {
+      sessionStorage.setItem('activeTab', 'favourites')
+    } else if (location.pathname === '/buy') {
       sessionStorage.setItem('activeTab', 'buy')
     } else if (location.pathname === '/rent') {
       sessionStorage.setItem('activeTab', 'rent')
@@ -53,6 +60,10 @@ const Navbar = () => {
       sessionStorage.setItem('activeTab', 'my-properties')
     } else if (location.pathname === '/property-owner') {
       sessionStorage.setItem('activeTab', 'property-owner')
+    } else if (location.pathname === '/messages') {
+      sessionStorage.setItem('activeTab', 'message')
+    } else if (location.pathname === '/requests') {
+      sessionStorage.setItem('activeTab', 'requests')
     } else if (location.pathname === '/profile') {
       sessionStorage.setItem('activeTab', 'profile')
     } else if (location.pathname === '/') {
@@ -71,8 +82,12 @@ const Navbar = () => {
   return (
     <div className='flex justify-between fixed top-0 left-0 z-50 bg-white
     w-full items-center px-6 md:px-16 lg:px-20 py-5 shadow-md'>
-      <Link to="/" className='max-md:flex-1'>
-        <img src={logo} alt="logo" className='w-36 h-auto' />
+      <Link
+        to="/explore"
+        onClick={() => { window.scrollTo(0, 0); handleTabClick('discover') }}
+        className='max-md:flex-1'
+      >
+        <img src={logo} alt="Esvora" className='w-36 h-auto' />
       </Link>
 
       <div className={`max-md:absolute max-md:top-0 max-md:left-0 max-md:font-medium max-md:text-lg text-[16px]
@@ -85,7 +100,7 @@ const Navbar = () => {
 
         <Link 
           onClick={()=> {scrollTo(0,0), handleTabClick('discover')}} 
-          to="/kyc" 
+          to="/explore" 
           className={`rounded-full px-4 py-2 transition-colors ${
             activeTab === 'discover' ? 'bg-gray-200' : 'hover:bg-gray-200'
           }`}
@@ -120,13 +135,22 @@ const Navbar = () => {
           Shortlet
         </Link>
         <Link 
-          onClick={()=> {scrollTo(0,0), handleTabClick('profile')}} 
-          to="/profile" 
+          onClick={()=> {scrollTo(0,0), handleTabClick('message')}} 
+          to="/messages" 
           className={`rounded-full px-4 py-2 transition-colors ${
-            activeTab === 'profile' ? 'bg-gray-200' : 'hover:bg-gray-200'
+            activeTab === 'message' ? 'bg-gray-200' : 'hover:bg-gray-200'
           }`}
         >
           Message
+        </Link>
+        <Link 
+          onClick={()=> {scrollTo(0,0), handleTabClick('requests')}} 
+          to="/requests" 
+          className={`rounded-full px-4 py-2 transition-colors ${
+            activeTab === 'requests' ? 'bg-gray-200' : 'hover:bg-gray-200'
+          }`}
+        >
+          Requests
         </Link>
         <Link 
           onClick={()=> {scrollTo(0,0), handleTabClick('my-properties')}} 
@@ -135,7 +159,23 @@ const Navbar = () => {
             activeTab === 'my-properties' ? 'bg-gray-200' : 'hover:bg-gray-200'
           }`}
         >
-          My properties
+          Properties
+        </Link>
+        <button
+          type='button'
+          onClick={() => { setIsNotificationOpen(true); setIsOpen(false) }}
+          className='md:hidden rounded-full px-4 py-2 transition-colors hover:bg-gray-200 flex items-center gap-2'
+        >
+          Notification
+        </button>
+        <Link
+          to="/favourites"
+          onClick={() => { setIsOpen(false) }}
+          className={`md:hidden rounded-full px-4 py-2 transition-colors flex items-center gap-2 ${
+            location.pathname === '/favourites' ? 'bg-gray-200' : 'hover:bg-gray-200'
+          }`}
+        >
+          Favourites
         </Link>
         {/* <Link 
           onClick={()=> {scrollTo(0,0), handleTabClick('property-owner')}} 
@@ -150,30 +190,35 @@ const Navbar = () => {
 
     
       <div className='flex items-center gap-4 md:gap-10'>
-      {/* <button
+      <button
         type='button'
         onClick={() => setIsNotificationOpen(true)}
-        className='p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-700 hover:text-primary relative'
+        className='max-md:hidden p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-700 hover:text-primary relative'
         title='Notifications'
         aria-label='Open notifications'
       >
         <Bell className='w-5 h-5' />
-      </button> */}
-      {/* <NotificationWidget
+      </button>
+      <NotificationWidget
         isOpen={isNotificationOpen}
         onClose={() => setIsNotificationOpen(false)}
-      /> */}
+      />
       <Link
         to="/favourites"
         onClick={() => setIsOpen(false)}
-        className='p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-700 hover:text-primary'
+        className={`max-md:hidden p-2 rounded-full transition-colors ${
+          location.pathname === '/favourites'
+            ? 'text-primary bg-primary/10'
+            : 'text-gray-700 hover:text-primary hover:bg-gray-100'
+        }`}
         title='Favourites'
       >
-        <Heart className='w-5 h-5' />
+        <Heart
+          className={`w-5 h-5 ${
+            location.pathname === '/favourites' ? 'fill-primary' : ''
+          }`}
+        />
       </Link>
-      <button className='bg-primary text-white px-3 py-2 text-[16px] max-md:hidden
-         hover:bg-primary/80 hover:scale-105 transition rounded-full font-medium cursor-pointer'>List a property</button>
-        <Link to="/help" className='max-md:hidden text-[16px] font-medium'>Help</Link>
         {account && (
           <Link
             to="/profile"
