@@ -21,8 +21,9 @@ import ForgotPasswordOtpView from './views/auth/forgot_password_otp_view'
 import ResetPasswordSuccessView from './views/auth/reset_password_success_view'
 import ExploreView from './views/explore_view'
 import PropertyDetailsView from './views/property_details_view'
+import MyPropertyDetailsView from './views/my_property_details_view'
 import ReviewsView from './views/reviews_view'
-import MyPropertiesView from './views/my_properties_view'
+import MyPropertiesView from './views/properties_view'
 import FavoritesView from './views/favorites_view'
 import RatePropertyView from './views/rate_property_view'
 import ScheduleInspectionView from './views/schedule_inspection_view'
@@ -34,6 +35,7 @@ import ShortletView from './views/shortlet_view'
 import LandlordDetailsView from './views/landlord_details_view'
 import PropertyOwnerView from './views/property_owner_view'
 import RequestsView from './views/requests_view'
+import MyRequestsView from './views/my_requests_view'
 import RequestDetailsView from './views/request_details_view'
 import KycView from './views/kyc_view'
 import KycFormView from './views/kyc_form_view'
@@ -68,6 +70,7 @@ import AddForSaleDocumentsView from './views/add_for_sale_documents_view'
 import AddForSaleBedroomsView from './views/add_for_sale_bedrooms_view'
 import AddForSaleImagesView from './views/add_for_sale_images_view'
 import AddForSaleSummaryInfoView from './views/add_for_sale_summary_info_view'
+import MessagesView from './views/messages_view'
 import CreatePasswordView from './views/auth/create_password_view'
 import UpdateNameView from './views/auth/update_name_view'
 import SetAvatarView from './views/auth/set_avatar_view'
@@ -119,7 +122,10 @@ const App = () => {
         <Route path="/buy" element={<BuyView />} />
         <Route path="/rent" element={<RentView />} />
         <Route path="/shortlet" element={<ShortletView />} />
+        <Route path="/messages" element={<MessagesView />} />
+        <Route path="/requests" element={<MyRequestsView />} />
         <Route path="/property-details/:id" element={<PropertyDetailsView />} />
+        <Route path="/my-property-details/:id" element={<MyPropertyDetailsView />} />
         <Route path="/reviews" element={<ReviewsView />} />
         <Route path="/my-properties" element={<MyPropertiesView />} />
         <Route path="/property-owner" element={<PropertyOwnerView />} />
