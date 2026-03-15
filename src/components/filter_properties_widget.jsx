@@ -9,7 +9,6 @@ const FilterPropertiesWidget = ({ isOpen, onClose, onApply }) => {
 	const [bathrooms, setBathrooms] = useState(0)
 	const [furnishing, setFurnishing] = useState('')
 	const [state, setState] = useState('')
-	const [propertyRange, setPropertyRange] = useState('')
 	
 	const minPriceRef = useRef(null)
 	const maxPriceRef = useRef(null)
@@ -90,8 +89,7 @@ const FilterPropertiesWidget = ({ isOpen, onClose, onApply }) => {
 			...(bedrooms > 0 && { bedrooms }),
 			...(bathrooms > 0 && { bathrooms }),
 			...(furnishing && { furnishing }),
-			...(state && { state }),
-			...(propertyRange && { propertyRange })
+			...(state && { state })
 		}
 		if (onApply) {
 			onApply(filters)
@@ -108,7 +106,9 @@ const FilterPropertiesWidget = ({ isOpen, onClose, onApply }) => {
 		setBathrooms(0)
 		setFurnishing('')
 		setState('')
-		setPropertyRange('')
+		if (onApply) {
+			onApply({})
+		}
 		if (onClose) {
 			onClose()
 		}
@@ -348,26 +348,6 @@ const FilterPropertiesWidget = ({ isOpen, onClose, onApply }) => {
 											{stateOption.label}
 										</option>
 									))}
-								</select>
-							</div>
-
-							{/* Property Range */}
-							<div>
-								<label className='block text-[16px] font-medium text-gray-700 mb-3'>
-									Property range
-								</label>
-								<select
-									value={propertyRange}
-									onChange={(e) => setPropertyRange(e.target.value)}
-									className='w-full px-4 py-3 text-[16px] border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary/20'
-								>
-									<option value=''>Select range</option>
-									<option value='0-50000'>₦0 - ₦50,000</option>
-									<option value='50000-100000'>₦50,000 - ₦100,000</option>
-									<option value='100000-200000'>₦100,000 - ₦200,000</option>
-									<option value='200000-500000'>₦200,000 - ₦500,000</option>
-									<option value='500000-1000000'>₦500,000 - ₦1,000,000</option>
-									<option value='1000000+'>₦1,000,000 +</option>
 								</select>
 							</div>
 						</div>
