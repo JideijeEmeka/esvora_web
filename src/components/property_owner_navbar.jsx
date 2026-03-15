@@ -1,15 +1,26 @@
-import { MenuIcon, XIcon, Bell } from 'lucide-react'
+import { MenuIcon, XIcon, Bell, User } from 'lucide-react'
 import React, { useEffect } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
+import { useSelector } from 'react-redux'
+import { selectCurrentAccount } from '../redux/slices/accountSlice'
 import logo from '../assets/logo.png'
 import NotificationWidget from './notification_widget'
 
+const DICEBEAR_ADVENTURER = 'https://api.dicebear.com/9.x/adventurer/svg'
+
+function getAvatarSrc(avatar) {
+	if (!avatar || typeof avatar !== 'string') return null
+	if (avatar.startsWith('data:') || avatar.startsWith('http')) return avatar
+	return `${DICEBEAR_ADVENTURER}?seed=${encodeURIComponent(avatar)}`
+}
+
 const PropertyOwnerNavbar = () => {
+	const account = useSelector(selectCurrentAccount)
 	const [isOpen, setIsOpen] = useState(false)
 	const [isNotificationOpen, setIsNotificationOpen] = useState(false)
-	const navigate = useNavigate()
 	const location = useLocation()
+	const avatarSrc = getAvatarSrc(account?.avatar ?? account?.avatar_url ?? account?.profile_image)
 
 	// Get active tab from sessionStorage or determine from pathname
 	const getActiveTab = () => {
@@ -18,6 +29,7 @@ const PropertyOwnerNavbar = () => {
 
 		// Default based on pathname
 		if (location.pathname === '/property-owner/listings') return 'listings'
+		if (location.pathname === '/my-properties') return 'my-properties'
 		if (location.pathname.startsWith('/property-owner/requests')) return 'requests'
 		if (location.pathname === '/property-owner/message') return 'message'
 		if (location.pathname === '/property-owner') return 'discover'
@@ -30,7 +42,9 @@ const PropertyOwnerNavbar = () => {
 	useEffect(() => {
 		if (location.pathname === '/property-owner/listings') {
 			sessionStorage.setItem('propertyOwnerActiveTab', 'listings')
-		} else 		if (location.pathname.startsWith('/property-owner/requests')) {
+		} else if (location.pathname === '/my-properties') {
+			sessionStorage.setItem('propertyOwnerActiveTab', 'my-properties')
+		} else if (location.pathname.startsWith('/property-owner/requests')) {
 			sessionStorage.setItem('propertyOwnerActiveTab', 'requests')
 		} else if (location.pathname === '/property-owner/message') {
 			sessionStorage.setItem('propertyOwnerActiveTab', 'message')
@@ -89,6 +103,18 @@ const PropertyOwnerNavbar = () => {
 				<Link
 					onClick={() => {
 						scrollTo(0, 0)
+						handleTabClick('my-properties')
+					}}
+					to='/my-properties'
+					className={`rounded-full px-4 py-2 transition-colors ${
+						activeTab === 'my-properties' ? 'bg-gray-200' : 'hover:bg-gray-200'
+					}`}
+				>
+					My Properties
+				</Link>
+				<Link
+					onClick={() => {
+						scrollTo(0, 0)
 						handleTabClick('listings')
 					}}
 					to='/property-owner/listings'
@@ -139,22 +165,25 @@ const PropertyOwnerNavbar = () => {
 					onClose={() => setIsNotificationOpen(false)}
 				/>
 				<button className='bg-primary text-white px-3 py-2 text-[16px] max-md:hidden hover:bg-primary/80 hover:scale-105 transition rounded-full font-medium cursor-pointer'>
-					Rent property
+					Sell a property
 				</button>
-				<Link to='/help' className='max-md:hidden text-[16px] font-medium'>
-					Help
+				<Link
+					to='/profile'
+					onClick={() => setIsOpen(false)}
+					className={`w-10 h-10 min-w-10 min-h-10 rounded-full overflow-hidden border-2 shrink-0 bg-gray-100 flex items-center justify-center ring-2 transition ${
+						location.pathname === '/profile'
+							? 'border-primary ring-primary/50'
+							: 'border-gray-200 ring-transparent hover:ring-primary/30'
+					}`}
+					title='Profile'
+					aria-label='Profile'
+				>
+					{avatarSrc ? (
+						<img src={avatarSrc} alt='' className='w-full h-full object-cover' />
+					) : (
+						<User className='w-6 h-6 text-gray-500' />
+					)}
 				</Link>
-				<Link to='/login' className='max-md:hidden text-[16px] font-medium'>
-					Log in
-				</Link>
-				<div className='w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden'>
-					<img
-						onClick={() => navigate('/profile')}
-						src='https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100'
-						alt='Profile'
-						className='w-full h-full object-cover'
-					/>
-				</div>
 			</div>
 
 			<MenuIcon
