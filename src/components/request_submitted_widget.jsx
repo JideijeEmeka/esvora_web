@@ -31,7 +31,7 @@ const RequestSubmittedWidget = ({ isOpen, onClose, onContinue }) => {
 	const handleContinue = () => {
 		if (onContinue) onContinue()
 		if (onClose) onClose()
-		navigate('/')
+		navigate('/sign-up')
 	}
 
 	if (!isOpen) return null
