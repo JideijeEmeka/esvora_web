@@ -30,10 +30,12 @@ const PropertyCardWidget = ({ property, isFavorite = false, onFavoriteToggle, on
 				)}
 			</div>
 			<div className='p-4'>
-				<p className='text-[20px] font-semibold text-gray-900 mb-2'>{property.price}</p>
+				<p className='text-[20px] font-semibold text-gray-900 mb-2'>
+				{typeof property.price === 'string' ? property.price : (typeof property.priceFormatted === 'string' ? property.priceFormatted : (property.price?.total != null ? `₦${Number(property.price.total).toLocaleString()}` : '—'))}
+			</p>
 				<p className='text-[14px] font-medium text-gray-700 mb-2'>{property.description}</p>
-				<div className='flex items-center gap-1'>
-					<MapIcon className='w-4 h-4 text-gray-500' />
+				<div className='flex items-start gap-1'>
+					<MapIcon className='w-4 h-4 text-gray-500 shrink-0 mt-0.5' />
 					<p className='text-[14px] text-gray-500'>{property.location}</p>
 				</div>
 			</div>
