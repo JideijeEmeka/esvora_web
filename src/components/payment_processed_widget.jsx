@@ -28,9 +28,12 @@ const PaymentProcessedWidget = ({ isOpen, onClose, onGoHome }) => {
 	}, [isOpen])
 
 	const handleGoHome = () => {
-		if (onGoHome) onGoHome()
 		if (onClose) onClose()
-		navigate('/sign-up')
+		if (onGoHome) {
+			onGoHome()
+		} else {
+			navigate('/sign-up')
+		}
 	}
 
 	if (!isOpen) return null
