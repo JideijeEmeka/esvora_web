@@ -1,3 +1,53 @@
+// Environment (same pattern as esvora Flutter app)
+// Vite loads .env.development when running `vite` (dev) and .env.production when running `vite build` (prod)
+export const Env = {
+	kDev: 'development',
+	kProd: 'production'
+}
+
+/** Current environment: kDev when running `vite`, kProd when running `vite build` */
+export const env = import.meta.env.MODE === 'production' ? Env.kProd : Env.kDev
+
+export const kBaseUrl = {
+	[Env.kDev]: 'https://sandbox.esvora.ng',
+	[Env.kProd]: 'https://app.esvora.ng'
+}
+
+/** Base URL for API; use this for all API requests */
+export const baseUrl = kBaseUrl[env]
+
+export const kDebugMode = env === Env.kDev
+
+// ---
+
+// API Endpoints Constants
+export const kAuthEndpoints = 'auth_endpoints'
+export const kAgreementEndpoints = 'agreement_endpoints'
+export const kWalletEndpoints = 'wallet_endpoints'
+export const kTenantEndpoints = 'tenant_endpoints'
+export const kPropertyEndpoints = 'property_endpoints'
+
+/** Redux state key for user slice */
+export const kAccountSlice = 'account_slice'
+
+/** Redux state key for agreement slice */
+export const kAgreementSlice = 'agreement_slice'
+
+/** Redux state key for wallet slice */
+export const kWalletSlice = 'wallet_slice'
+/** Redux state key for tenant slice */
+export const kTenantSlice = 'tenant_slice'
+/** Redux state key for property slice */
+export const kPropertySlice = 'property_slice'
+
+/** localStorage key for auth token */
+export const kToken = 'auth_token'
+
+/** Deposit gateway values */
+export const kPayStack = 'paystack'
+export const kFlutterWave = 'flutterwave'
+
+
 export const FURNISHING_TYPES = [
 	{ value: 'furnished', label: 'Furnished' },
 	{ value: 'semi-furnished', label: 'Semi-Furnished' },
