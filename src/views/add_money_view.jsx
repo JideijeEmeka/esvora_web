@@ -11,7 +11,7 @@ const AddMoneyView = ({
 	const [isFocused, setIsFocused] = useState(false)
 	const inputRef = useRef(null)
 
-	const suggestedAmounts = ['50', '200', '400', '1000']
+	const suggestedAmounts = [1000, 5000, 50000, 100000]
 
 	const formatAmount = (value) => {
 		// Remove all non-digit characters except comma
@@ -31,7 +31,9 @@ const AddMoneyView = ({
 	}
 
 	const handleSuggestedAmountClick = (suggestedAmount) => {
-		setAmount(formatAmount(suggestedAmount))
+		const currentNumeric = parseInt(amount.replace(/,/g, ''), 10) || 0
+		const newTotal = currentNumeric + suggestedAmount
+		setAmount(formatAmount(String(newTotal)))
 		inputRef.current?.focus()
 	}
 
@@ -114,7 +116,7 @@ const AddMoneyView = ({
 						onClick={() => handleSuggestedAmountClick(suggestedAmount)}
 						className='px-4 py-2 rounded-lg border border-gray-300 bg-white text-[14px] font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 active:bg-gray-100 transition-colors'
 					>
-						${suggestedAmount}
+						₦{suggestedAmount.toLocaleString()}
 					</button>
 				))}
 			</div>
