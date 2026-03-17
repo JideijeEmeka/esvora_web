@@ -1,18 +1,40 @@
 import React from 'react'
+import { useSelector } from 'react-redux'
 import { Camera, Info, ChevronLeft } from 'lucide-react'
+import { selectCurrentAccount } from '../redux/slices/accountSlice'
 
-const DEFAULT_USER = {
-	name: 'Osaite Emmanuel',
-	avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200',
-	userId: 'E12509sec45679kod9-929',
-	email: 'emmanuelosaite@gmail.com',
-	gender: 'Male',
-	country: 'Nigeria',
-	phone: '09052471033',
-	dateCreated: '24 November, 2025'
+const DICEBEAR_ADVENTURER = 'https://api.dicebear.com/9.x/adventurer/svg'
+
+function getAvatarSrc(avatar) {
+	if (!avatar || typeof avatar !== 'string') return null
+	if (avatar.startsWith('data:') || avatar.startsWith('http')) return avatar
+	return `${DICEBEAR_ADVENTURER}?seed=${encodeURIComponent(avatar)}`
 }
 
-const AccountView = ({ user = DEFAULT_USER, onBack, clickedSection }) => {
+function formatDateCreated(dateStr) {
+	if (!dateStr) return '—'
+	const d = new Date(dateStr)
+	if (Number.isNaN(d.getTime())) return '—'
+	const day = d.getDate()
+	const suffix = day === 1 || day === 21 || day === 31 ? 'st' : day === 2 || day === 22 ? 'nd' : day === 3 || day === 23 ? 'rd' : 'th'
+	const month = d.toLocaleString('en-GB', { month: 'long' })
+	const year = d.getFullYear()
+	return `${day}${suffix} ${month} ${year}`
+}
+
+const AccountView = ({ onBack, clickedSection }) => {
+	const account = useSelector(selectCurrentAccount)
+	const avatarSrc = getAvatarSrc(account?.avatar ?? account?.avatar_url ?? account?.profile_image)
+	const user = {
+		name: (account?.fullname ?? account?.full_name ?? '').trim() || '—',
+		avatar: avatarSrc ?? 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200',
+		userId: account?.id ?? '—',
+		email: (account?.email ?? '').trim() || '—',
+		gender: (account?.gender ?? '').trim() || '—',
+		country: (account?.country ?? '').trim() || '—',
+		phone: (account?.phone ?? '').trim() || '—',
+		dateCreated: formatDateCreated(account?.created_at)
+	}
 	return (
 		<div className={`bg-white rounded-2xl border border-gray-200 p-6 lg:p-8 
 		     ${clickedSection === false ? 'max-md:hidden' : ''}`}>
