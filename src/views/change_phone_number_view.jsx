@@ -1,14 +1,28 @@
 import React, { useState } from 'react'
+import PhoneInput from 'react-phone-number-input'
+import 'react-phone-number-input/style.css'
 import { ChevronLeft, Eye, EyeOff } from 'lucide-react'
+import { validatePhone } from '../lib/validation'
+import toast from 'react-hot-toast'
 
-const ChangePhoneNumberView = ({ onBack, onSave }) => {
+const ChangePhoneNumberView = ({ onBack, onSave, isLoading }) => {
 	const [phone, setPhone] = useState('')
 	const [password, setPassword] = useState('')
 	const [showPassword, setShowPassword] = useState(false)
 
 	const handleSave = (e) => {
 		e.preventDefault()
-		if (onSave) onSave({ phone, password })
+		const phoneValidation = validatePhone(phone)
+		if (!phoneValidation.valid) {
+			toast.error(phoneValidation.message)
+			return
+		}
+		const p = (password ?? '').trim()
+		if (!p) {
+			toast.error('Password is required')
+			return
+		}
+		if (onSave) onSave(phone.trim(), p)
 	}
 
 	return (
@@ -36,15 +50,13 @@ const ChangePhoneNumberView = ({ onBack, onSave }) => {
 					>
 						Enter a new phone number
 					</label>
-					<input
-						id='change-phone-new'
-						type='tel'
+					<PhoneInput
+						international
+						defaultCountry='NG'
 						value={phone}
-						onChange={(e) => setPhone(e.target.value)}
-						placeholder='Enter phone number'
-						className='w-full px-4 py-3 rounded-full border border-gray-300
-						text-[16px] text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
-						autoComplete='tel'
+						onChange={(value) => setPhone(value ?? '')}
+						placeholder='1234 5678 90'
+						className='phone-input-container w-full px-4 py-3 rounded-full border border-gray-300 text-[16px] text-gray-900 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary'
 					/>
 				</div>
 
@@ -82,9 +94,10 @@ const ChangePhoneNumberView = ({ onBack, onSave }) => {
 
 				<button
 					type='submit'
-					className='w-full py-3 rounded-full bg-primary text-white font-semibold text-[16px] hover:bg-primary/90 transition-colors'
+					disabled={isLoading}
+					className='w-full py-3 rounded-full bg-primary text-white font-semibold text-[16px] hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed'
 				>
-					Save changes
+					{isLoading ? 'Saving...' : 'Save changes'}
 				</button>
 			</form>
 		</div>
