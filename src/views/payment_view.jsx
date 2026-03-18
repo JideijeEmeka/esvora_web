@@ -1,8 +1,11 @@
 import React, { useState, useRef } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { CreditCard, Eye, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
+import { CreditCard, Eye, ChevronLeft, ChevronRight, Building2 } from 'lucide-react'
+import toast from 'react-hot-toast'
+import Navbar from '../components/navbar'
 import Footer from '../components/footer'
 import PaymentProcessedWidget from '../components/payment_processed_widget'
+import PropertyPaymentApprovalView from './property_payment_approval_view'
 
 const CATEGORIES = [
 	'Popular apartments',
@@ -32,6 +35,12 @@ const PAYMENT_METHODS = [
 		icon: CreditCard
 	},
 	{
+		id: 'bank_transfer',
+		label: 'Bank transfer',
+		description: 'Transfer from your bank account.',
+		icon: Building2
+	},
+	{
 		id: 'pay_offline',
 		label: 'Pay offline',
 		description: 'Process pay outside esvora.',
@@ -49,12 +58,37 @@ const DEFAULT_PROPERTY = {
 
 const PaymentView = () => {
 	const { id } = useParams()
+	const navigate = useNavigate()
+	const location = useLocation()
 	const [paymentMethod, setPaymentMethod] = useState('debit_card')
 	const [selectedCategory, setSelectedCategory] = useState('Popular apartments')
 	const [isPaymentProcessedOpen, setIsPaymentProcessedOpen] = useState(false)
+	const [showApproval, setShowApproval] = useState(false)
 	const categoryRef = useRef(null)
 
-	const property = { ...DEFAULT_PROPERTY, id: id || DEFAULT_PROPERTY.id }
+	const state = location.state || {}
+	const stateProperty = state.property
+	const requestId = state.requestId
+	const stateAmount = state.amount
+	const hasRequestContext = requestId != null
+
+	const property = stateProperty
+		? {
+				id: stateProperty.id ?? stateProperty.uuid ?? id,
+				image: stateProperty.images?.[0] ?? stateProperty.image ?? DEFAULT_PROPERTY.image,
+				images: stateProperty.images ?? (stateProperty.image ? [stateProperty.image] : [DEFAULT_PROPERTY.image]),
+				price: stateProperty.price ?? DEFAULT_PROPERTY.price,
+				priceNGN: stateProperty.priceNGN ?? stateProperty.paymentInfo?.total,
+				totalPrice: stateProperty.paymentInfo?.total ?? stateProperty.priceNGN ?? stateProperty.totalPrice,
+				description: stateProperty.description ?? stateProperty.title ?? DEFAULT_PROPERTY.description,
+				location: stateProperty.location ?? stateProperty.fullAddress ?? stateProperty.address ?? DEFAULT_PROPERTY.location,
+				address: stateProperty.address ?? stateProperty.fullAddress ?? stateProperty.location,
+				property_type: stateProperty.property_type,
+				propertyType: stateProperty.property_type ?? stateProperty.propertyType
+			}
+		: { ...DEFAULT_PROPERTY, id: id || DEFAULT_PROPERTY.id }
+
+	const amount = stateAmount ?? property.totalPrice ?? property.priceNGN
 
 	const scrollCategories = (direction) => {
 		if (!categoryRef?.current) return
@@ -66,7 +100,52 @@ const PaymentView = () => {
 	}
 
 	const handleContinue = () => {
+		if (paymentMethod === 'pay_offline') {
+			toast.error('Offline payment is not available yet')
+			return
+		}
+		if (paymentMethod === 'bank_transfer') {
+			toast.error('Bank transfer is not available yet')
+			return
+		}
+		if (hasRequestContext && requestId && (amount != null || property.totalPrice != null)) {
+			setShowApproval(true)
+			return
+		}
 		setIsPaymentProcessedOpen(true)
+	}
+
+	if (showApproval && hasRequestContext && requestId) {
+		const propForApproval = {
+			images: property.images ?? [property.image],
+			image: property.image ?? property.images?.[0],
+			price: typeof property.price === 'object' ? property.price : { total: amount ?? property.totalPrice ?? 0 },
+			totalPrice: amount ?? property.totalPrice ?? property.priceNGN,
+			property_type: property.property_type ? { name: property.property_type } : null,
+			propertyType: property.property_type ?? property.propertyType,
+			address: property.address ?? property.location
+		}
+		return (
+			<>
+				<Navbar />
+				<div className='pt-24 pb-10 px-6 md:px-16 lg:px-20'>
+					<PropertyPaymentApprovalView
+						property={propForApproval}
+						amount={amount ?? property.totalPrice}
+						propertyRequestId={requestId}
+						onBack={() => setShowApproval(false)}
+						onApproveSuccess={() => setIsPaymentProcessedOpen(true)}
+						onAddCard={() => {}}
+					/>
+				</div>
+				<Footer />
+				<PaymentProcessedWidget
+					isOpen={isPaymentProcessedOpen}
+					onClose={() => setIsPaymentProcessedOpen(false)}
+					onGoHome={() => navigate('/requests')}
+				/>
+			</>
+		)
 	}
 
 	return (
@@ -75,6 +154,7 @@ const PaymentView = () => {
 				isOpen={isPaymentProcessedOpen}
 				onClose={() => setIsPaymentProcessedOpen(false)}
 			/>
+			<Navbar />
 			<div className='pt-30 pb-10 px-6 md:px-16 lg:px-20'>
 
 				{/* Two-column: Property card + Payment method */}
@@ -82,18 +162,22 @@ const PaymentView = () => {
 					{/* Left: Property details card */}
 					<div className='bg-white rounded-2xl border border-gray-200 overflow-hidden'>
 						<img
-							src={property.image}
-							alt={property.description}
+							src={property.image ?? property.images?.[0]}
+							alt={property.description ?? ''}
 							className='w-full h-[240px] object-cover'
 						/>
 						<div className='p-6'>
 							<p className='text-[24px] font-semibold text-gray-900 mb-2'>
-								{property.price}
+								{typeof property.price === 'string'
+									? property.price
+									: property.totalPrice != null
+										? `₦${Number(property.totalPrice).toLocaleString()}`
+										: '—'}
 							</p>
 							<p className='text-[16px] font-medium text-gray-700 mb-2'>
-								{property.description}
+								{property.description ?? property.title ?? '—'}
 							</p>
-							<p className='text-[14px] text-gray-500'>{property.location}</p>
+							<p className='text-[14px] text-gray-500'>{property.location ?? property.address ?? '—'}</p>
 						</div>
 					</div>
 
