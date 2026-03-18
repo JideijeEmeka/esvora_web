@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Star, Phone, Mail, CheckCircle, ChevronLeft, ChevronRight, Search, Filter, ChevronDown } from 'lucide-react'
 import Navbar from '../components/navbar'
@@ -54,6 +54,10 @@ const LandlordDetailsView = () => {
 	const [toDate, setToDate] = useState(null)
 	const [searchQuery, setSearchQuery] = useState('')
 	const propertiesRef = useRef(null)
+
+	useEffect(() => {
+		window.scrollTo(0, 0)
+	}, [])
 
 	const overallRating = 4.3
 	const totalReviews = 230
