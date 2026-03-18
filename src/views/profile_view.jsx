@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
+import toast from 'react-hot-toast'
 import {
 	User,
 	UserCog,
@@ -23,16 +25,22 @@ import VerifyPhoneNumberView from './verify_phone_number_view'
 import NotificationSettingsView from './notification_settings_view'
 import TenancyView from './tenancy_view'
 import AgreementsView from './agreements_view'
+import AgreementDetailsView from './agreement_details_view'
 import PrivacyAndSecurityView, { ManageAppView } from './privacy_and_security_view'
 import SetLocationView from './set_location_view'
 import ChangePasswordView from './change_password_view'
 import HelpAndSupportView from './help_and_support_view'
 import PaymentsView from './payments_view'
-import AddPaymentMethodView from './add_payment_method_view'
+import PaymentMethodsView from './payment_methods_view'
+import PaymentMethodDetailsView from './payment_method_details_view'
+import AddCardPaymentMethodView from './add_card_payment_method_view'
+import UpdateCardPaymentMethodView from './update_card_payment_method_view'
 import WalletView from './wallet_view'
 import ReviewsView from './reviews_view'
 import LogoutWidget from '../components/logout_widget'
 import DeleteAccountWidget from '../components/delete_account_widget'
+import AuthController from '../controllers/auth_controller'
+import { selectCurrentAccount } from '../redux/slices/accountSlice'
 
 const SIDEBAR_SECTIONS = [
 	{
@@ -76,6 +84,8 @@ const SIDEBAR_SECTION_2 = [
 
 const ProfileView = () => {
 	const navigate = useNavigate()
+	const account = useSelector(selectCurrentAccount)
+	const [isLoggingOut, setIsLoggingOut] = useState(false)
 	const [selectedSection, setSelectedSection] = useState('account')
 	const [clickedSection, setClickedSection] = useState(false)
 	const [isLogoutOpen, setIsLogoutOpen] = useState(false)
@@ -84,6 +94,16 @@ const ProfileView = () => {
 	const [privacySubView, setPrivacySubView] = useState(null)
 	const [changePasswordStep, setChangePasswordStep] = useState('form')
 	const [paymentsSubView, setPaymentsSubView] = useState(null)
+	const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null)
+	const [agreementsSubView, setAgreementsSubView] = useState(null)
+	const [isLoadingLocation, setIsLoadingLocation] = useState(false)
+	const [isLoadingPhone, setIsLoadingPhone] = useState(false)
+	const [isDeletingAccount, setIsDeletingAccount] = useState(false)
+	const [isAccountTypeLoading, setIsAccountTypeLoading] = useState(false)
+	const [isLoadingChangePassword, setIsLoadingChangePassword] = useState(false)
+	const [isLoadingChangePasswordVerify, setIsLoadingChangePasswordVerify] = useState(false)
+	const [isResendingChangePasswordOtp, setIsResendingChangePasswordOtp] = useState(false)
+	const authController = new AuthController()
 
 	const renderMainContent = () => {
 		if (selectedSection === 'account_settings') {
@@ -103,7 +123,31 @@ const ProfileView = () => {
 					{accountSettingsSubView === 'account_type' && (
 						<div>
 							<AccountTypeView
+								account={account}
 								onBack={() => setAccountSettingsSubView(null)}
+								onSwitch={(action, landlordDashboard) => {
+									if (action === 'becomeLandlord') {
+										authController.becomeLandlord({
+											setLoading: setIsAccountTypeLoading,
+											onSuccess: () => {
+												toast.success('You are now a landlord. You can access the landlord dashboard.')
+												navigate('/property-owner')
+											},
+											onError: (message) => toast.error(message),
+										})
+									} else if (action === 'switchDashboard') {
+										authController.switchDashboard(landlordDashboard, {
+											setLoading: setIsAccountTypeLoading,
+											onSuccess: () => {
+												const role = landlordDashboard ? 'landlord' : 'renter'
+												toast.success(`You are now a ${role}. You can access the ${role} dashboard.`)
+												if (landlordDashboard) navigate('/property-owner')
+											},
+											onError: (message) => toast.error(message),
+										})
+									}
+								}}
+								isLoading={isAccountTypeLoading}
 								clickedSection={clickedSection}
 							/>
 						</div>
@@ -120,7 +164,16 @@ const ProfileView = () => {
 						<div>
 							<ChangePhoneNumberView
 								onBack={() => setAccountSettingsSubView(null)}
-								onSave={() => setAccountSettingsSubView('verify_phone')}
+								isLoading={isLoadingPhone}
+								onSave={(phone, password) => {
+									authController.changePhoneNumber(phone, password, {
+										setLoading: setIsLoadingPhone,
+										onSuccess: () => {
+											toast.success('Phone number updated successfully.')
+										},
+										onError: (message) => toast.error(message),
+									})
+								}}
 							/>
 						</div>
 					)}
@@ -155,16 +208,40 @@ const ProfileView = () => {
 				return <AccountView clickedSection={clickedSection} 
 				 onBack={() => {setSelectedSection('account'), setClickedSection(false)}} />
 			case 'tenancy':
-				return <TenancyView />
-			case 'agreements':
 				return (
-					<AgreementsView
+					<TenancyView
 						onBack={() => {
 							setSelectedSection('account')
 							setClickedSection(false)
 						}}
 					/>
 				)
+			case 'agreements': {
+				const hasAgreementDetails = agreementsSubView != null
+				return (
+					<div className='grid grid-cols-1 lg:grid-cols-2 gap-8 items-start'>
+						<div className={hasAgreementDetails ? 'max-md:hidden' : 'lg:col-span-2'}>
+							<div className='bg-white rounded-2xl border border-gray-200 p-6 lg:p-8'>
+								<AgreementsView
+									onBack={() => {
+										setSelectedSection('account')
+										setClickedSection(false)
+									}}
+									onAgreementClick={(id) => setAgreementsSubView(id)}
+								/>
+							</div>
+						</div>
+						{hasAgreementDetails && (
+							<div className='bg-white rounded-2xl border border-gray-200 p-6 lg:p-8'>
+								<AgreementDetailsView
+									agreementId={agreementsSubView}
+									onBack={() => setAgreementsSubView(null)}
+								/>
+							</div>
+						)}
+					</div>
+				)
+			}
 			case 'wallet':
 				return (
 					<WalletView
@@ -175,23 +252,58 @@ const ProfileView = () => {
 					/>
 				)
 			case 'payments': {
-				const hasPaymentsSubView = paymentsSubView === 'add_method'
+				const hasPaymentsSubView = ['methods', 'add_method', 'details', 'update'].includes(paymentsSubView)
 				return (
 					<div className='grid grid-cols-1 lg:grid-cols-2 gap-8 items-start'>
 						<div className={hasPaymentsSubView ? 'max-md:hidden' : 'lg:col-span-2'}>
-							<PaymentsView
-								onBack={() => {
-									setSelectedSection('account')
-									setClickedSection(false)
-								}}
-								onPaymentMethodClick={() => setPaymentsSubView('add_method')}
-							/>
+							{hasPaymentsSubView ? (
+								<PaymentMethodsView
+									onBack={() => setPaymentsSubView(null)}
+									onAddCard={() => {
+										setSelectedPaymentMethod(null)
+										setPaymentsSubView('add_method')
+									}}
+									onCardDetails={(method) => {
+										setSelectedPaymentMethod(method)
+										setPaymentsSubView('details')
+									}}
+									onEditCard={(method) => {
+										setSelectedPaymentMethod(method)
+										setPaymentsSubView('update')
+									}}
+								/>
+							) : (
+								<PaymentsView
+									onBack={() => {
+										setSelectedSection('account')
+										setClickedSection(false)
+									}}
+									onPaymentMethodClick={() => setPaymentsSubView('methods')}
+								/>
+							)}
 						</div>
 						{paymentsSubView === 'add_method' && (
 							<div>
-								<AddPaymentMethodView
-									onBack={() => setPaymentsSubView(null)}
-									onAddNewCard={() => {}}
+								<AddCardPaymentMethodView
+									onBack={() => setPaymentsSubView('methods')}
+									onSuccess={() => setPaymentsSubView('methods')}
+								/>
+							</div>
+						)}
+						{paymentsSubView === 'details' && selectedPaymentMethod && (
+							<div>
+								<PaymentMethodDetailsView
+									method={selectedPaymentMethod}
+									onBack={() => setPaymentsSubView('methods')}
+								/>
+							</div>
+						)}
+						{paymentsSubView === 'update' && selectedPaymentMethod && (
+							<div>
+								<UpdateCardPaymentMethodView
+									method={selectedPaymentMethod}
+									onBack={() => setPaymentsSubView('methods')}
+									onSuccess={() => setPaymentsSubView('methods')}
 								/>
 							</div>
 						)}
@@ -229,7 +341,19 @@ const ProfileView = () => {
 							<div>
 								<SetLocationView
 									onBack={() => setPrivacySubView(null)}
-									onSave={() => setPrivacySubView(null)}
+									initialState={account?.state ?? undefined}
+									initialCity={account?.city ?? undefined}
+									isLoading={isLoadingLocation}
+									onSave={(state, city) => {
+										authController.updateLocation(state, city, {
+											setLoading: setIsLoadingLocation,
+											onSuccess: () => {
+												toast.success('Location updated successfully.')
+												setPrivacySubView(null)
+											},
+											onError: (message) => toast.error(message),
+										})
+									}}
 								/>
 							</div>
 						)}
@@ -241,15 +365,64 @@ const ProfileView = () => {
 											setPrivacySubView(null)
 											setChangePasswordStep('form')
 										}}
-										onSubmit={() => setChangePasswordStep('verify')}
+										isLoading={isLoadingChangePassword}
+										onSubmit={(currentPassword, newPassword, confirmPassword) => {
+											authController.changePassword(
+												currentPassword,
+												newPassword,
+												confirmPassword,
+												{
+													setLoading: setIsLoadingChangePassword,
+													onSuccess: (message) => {
+														toast.success(message ?? 'Verification code sent to your email address.')
+														setChangePasswordStep('verify')
+													},
+													onError: (m) => toast.error(m),
+												}
+											)
+										}}
 									/>
 								) : (
 									<VerifyPhoneNumberView
 										onBack={() => setChangePasswordStep('form')}
-										onResendCode={() => {}}
+										verificationTitle='Confirm change password'
+										codeLength={6}
+										showTimer
+										onSubmitLoading={isLoadingChangePasswordVerify}
+										onResendLoading={isResendingChangePasswordOtp}
+										verificationSubtitle={`Please enter the 6 digit code sent to your email address${account?.email ? ` ${account.email}` : ''} to confirm your password change.`}
+										onSubmit={(code) =>
+											new Promise((resolve, reject) => {
+												authController.confirmChangePassword(code, {
+													setLoading: setIsLoadingChangePasswordVerify,
+													onSuccess: () => resolve(),
+													onError: (m) => {
+														toast.error(m)
+														reject(new Error(m))
+													},
+												})
+											})
+										}
+										onResendCode={() => {
+											authController.resendOtpChangePassword({
+												setLoading: setIsResendingChangePasswordOtp,
+												onSuccess: (message) =>
+													toast.success(message ?? 'Verification code resent to your email address.'),
+												onError: (m) => toast.error(m),
+											})
+										}}
+										onSuccessClose={() => {
+											authController.logout({
+												onSuccess: () => {
+													navigate('/login')
+													setPrivacySubView(null)
+													setChangePasswordStep('form')
+												}
+											})
+										}}
 										backLabel='Back to Change password'
 										successTitle='Password changed!'
-										successSubtitle='Your password has been successfully updated, proceed to login'
+										successSubtitle='Your password has been successfully updated.'
 										successButtonText='Close'
 									/>
 								)}
@@ -354,7 +527,14 @@ const ProfileView = () => {
 						<LogoutWidget
 							isOpen={isLogoutOpen}
 							onClose={() => setIsLogoutOpen(false)}
-							onConfirm={() => navigate('/login')}
+							onConfirm={() => authController.logout({ 
+								setLoading: setIsLoggingOut, 
+								onSuccess: () => {
+									navigate('/login')
+									setIsLogoutOpen(false)
+								}
+							})}
+							isLoading={isLoggingOut}
 						/>
 
 						<div className='mt-4'>
@@ -373,11 +553,19 @@ const ProfileView = () => {
 							<DeleteAccountWidget
 								isOpen={isDeleteAccountOpen}
 								onClose={() => setIsDeleteAccountOpen(false)}
-								onConfirm={() => {
-									// TODO: call delete account API then e.g. navigate('/login')
-									navigate('/login')
+								onConfirm={(password) => {
+									authController.deleteAccount(password, {
+										setLoading: setIsDeletingAccount,
+										onSuccess: () => {
+											toast.success('Your account has been deleted successfully.')
+											setIsDeleteAccountOpen(false)
+											navigate('/login')
+										},
+										onError: (message) => toast.error(message),
+									})
 								}}
-								userName='emmanuel'
+								userName={account?.fullname ?? ''}
+								isLoading={isDeletingAccount}
 							/>
 						</div>
 					</nav>
