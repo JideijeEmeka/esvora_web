@@ -1,8 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import PropertyOwnerNavbar from '../components/property_owner_navbar'
 import Footer from '../components/footer'
+import Loader from '../components/loader'
+import propertyController from '../controllers/property_controller'
+import { selectLandlordProperties } from '../redux/slices/propertySlice'
+import { normalizeProperties } from '../lib/propertyUtils'
 import { Home, Clock, FileText, ChevronLeft, ChevronRight, MapIcon, Pencil } from 'lucide-react'
+
+const toStatusLabel = (p) => {
+	const t = (p.property_type ?? p.propertyType ?? p.status ?? '').toString().toLowerCase()
+	if (t.includes('shortlet')) return 'Shortlet'
+	if (t.includes('sale') || t.includes('buy')) return 'Sale'
+	return 'Rent'
+}
 
 const SAMPLE_PROPERTIES = [
 	{
@@ -97,7 +109,7 @@ const PropertyOwnerCard = ({ property, onViewDetails, onEdit }) => {
 			</div>
 			<div className='p-4'>
 				<p className='text-[20px] font-semibold text-gray-900 mb-2'>
-					{property.price}
+					{typeof property.price === 'string' ? property.price : (property.price?.total != null ? `₦${Number(property.price.total).toLocaleString()}` : '—')}
 				</p>
 				<p className='text-[14px] font-medium text-gray-700 mb-2 line-clamp-2'>
 					{property.description}
@@ -114,6 +126,12 @@ const PropertyOwnerCard = ({ property, onViewDetails, onEdit }) => {
 const PropertyOwnerView = () => {
 	const navigate = useNavigate()
 	const propertiesRef = useRef(null)
+	const [isLoading, setIsLoading] = useState(true)
+	const landlordPropertiesRaw = useSelector(selectLandlordProperties)
+	const landlordProperties = normalizeProperties(landlordPropertiesRaw) ?? []
+	const displayProperties = landlordProperties.length > 0
+		? landlordProperties.map((p) => ({ ...p, status: toStatusLabel(p) }))
+		: SAMPLE_PROPERTIES
 
 	const scrollProperties = (ref, direction) => {
 		if (!ref?.current) return
@@ -134,9 +152,16 @@ const PropertyOwnerView = () => {
 		navigate(`/property-owner/listings/edit/${propertyId}`)
 	}
 
-	// Set active tab to 'property-owner' when component mounts
 	useEffect(() => {
 		sessionStorage.setItem('activeTab', 'property-owner')
+	}, [])
+
+	useEffect(() => {
+		setIsLoading(true)
+		propertyController.listLandlordProperties({
+			onSuccess: () => setIsLoading(false),
+			onError: () => setIsLoading(false)
+		})
 	}, [])
 
 		return (
@@ -226,19 +251,36 @@ const PropertyOwnerView = () => {
 							</button>
 						</div>
 					</div>
-					<div
-						ref={propertiesRef}
-						className='flex gap-4 overflow-x-auto pb-4 scrollbar-hide'
-					>
-						{SAMPLE_PROPERTIES.map((property) => (
-							<PropertyOwnerCard
-								key={property.id}
-								property={property}
-								onViewDetails={() => handleViewDetails(property.id)}
-								onEdit={handleEditListing}
-							/>
-						))}
-					</div>
+					{isLoading ? (
+						<div className='flex justify-center py-12'>
+							<Loader />
+						</div>
+					) : (
+						<>
+							<div
+								ref={propertiesRef}
+								className='flex gap-4 overflow-x-auto pb-4 scrollbar-hide'
+							>
+								{displayProperties.map((property) => (
+									<PropertyOwnerCard
+										key={property.id}
+										property={property}
+										onViewDetails={() => handleViewDetails(property.id)}
+										onEdit={landlordProperties.length > 0 ? handleEditListing : undefined}
+									/>
+								))}
+							</div>
+							<div className='mt-4'>
+								<button
+									type='button'
+									onClick={() => navigate('/my-properties')}
+									className='text-[14px] font-medium text-primary hover:underline'
+								>
+									See all
+								</button>
+							</div>
+						</>
+					)}
 				</div>
 			</div>
 
