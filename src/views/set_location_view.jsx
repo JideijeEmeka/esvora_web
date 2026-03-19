@@ -1,35 +1,76 @@
 import React, { useState, useMemo } from 'react'
-import { X, ChevronLeft, MapPin, Check } from 'lucide-react'
-import { NIGERIAN_STATES_SORTED } from '../lib/constants'
+import { ChevronLeft, ChevronDown } from 'lucide-react'
+import {
+	NIGERIAN_STATES_SORTED,
+	getLocalGovernmentsByState
+} from '../lib/constants'
+import toast from 'react-hot-toast'
 
-const SetLocationView = ({ onBack, onSave, initialLocation = null }) => {
-	const [search, setSearch] = useState('')
-	const [selectedLocation, setSelectedLocation] = useState(initialLocation)
-
-	const filteredLocations = useMemo(() => {
-		if (!search.trim()) return NIGERIAN_STATES_SORTED
-		const q = search.trim().toLowerCase()
-		return NIGERIAN_STATES_SORTED.filter(
-			(item) => item.label.toLowerCase().includes(q)
+const SetLocationView = ({
+	onBack,
+	onSave,
+	initialState = null,
+	initialCity = null,
+	isLoading = false
+}) => {
+	const [selectedState, setSelectedState] = useState(() => {
+		if (initialState) {
+			const found = NIGERIAN_STATES_SORTED.find(
+				(s) => s.value === initialState || s.label === initialState
+			)
+			return found ?? null
+		}
+		return null
+	})
+	const [selectedCity, setSelectedCity] = useState(() => {
+		if (!initialCity) return null
+		const stateObj = NIGERIAN_STATES_SORTED.find(
+			(s) => s.value === initialState || s.label === initialState
 		)
-	}, [search])
+		if (!stateObj) return null
+		const lgas = getLocalGovernmentsByState(stateObj.value)
+		return lgas.find((l) => l.value === initialCity || l.label === initialCity) ?? null
+	})
+	const [stateOpen, setStateOpen] = useState(false)
+	const [cityOpen, setCityOpen] = useState(false)
 
-	const handleSave = () => {
-		if (onSave && selectedLocation) onSave(selectedLocation)
-		else if (onBack) onBack()
+	const localGovernments = useMemo(
+		() => getLocalGovernmentsByState(selectedState?.value),
+		[selectedState?.value]
+	)
+
+	const handleStateSelect = (item) => {
+		setSelectedState(item)
+		setSelectedCity(null)
+		setStateOpen(false)
 	}
 
-	const handleCancel = () => {
-		if (onBack) onBack()
+	const handleCitySelect = (item) => {
+		setSelectedCity(item)
+		setCityOpen(false)
+	}
+
+	const handleSave = () => {
+		const stateTrim = selectedState?.value?.trim() ?? selectedState?.label?.trim() ?? ''
+		const cityTrim = selectedCity?.value?.trim() ?? selectedCity?.label?.trim() ?? ''
+		if (!stateTrim) {
+			toast.error('Please select a state')
+			return
+		}
+		if (!cityTrim) {
+			toast.error('Please select a local government')
+			return
+		}
+		if (onSave) onSave(stateTrim, cityTrim)
+		else if (onBack) onBack()
 	}
 
 	return (
 		<div className='bg-white rounded-2xl border border-gray-200 p-6 lg:p-8 flex flex-col max-h-[85vh]'>
-			{/* Header: title + X back */}
 			<div className='flex items-start justify-between gap-4 shrink-0'>
 				<div className='min-w-0'>
 					{onBack && (
-						<div className='md:hidden mb-4'>
+						<div className='md:mb-4'>
 							<button
 								type='button'
 								onClick={onBack}
@@ -41,75 +82,99 @@ const SetLocationView = ({ onBack, onSave, initialLocation = null }) => {
 						</div>
 					)}
 					<h2 className='text-[24px] font-bold text-gray-900'>
-						Select location
+						Set location
 					</h2>
+					<p className='text-[14px] text-gray-500 mt-1'>
+						Set your location to your area of interest
+					</p>
 				</div>
 			</div>
 
-			{/* Search */}
-			<div className='mt-6 shrink-0'>
-				<label htmlFor='set-location-search' className='block text-[14px] font-medium text-gray-700 mb-2'>
-					Search for a location
-				</label>
-				<div className='relative'>
-					<input
-						id='set-location-search'
-						type='text'
-						value={search}
-						onChange={(e) => setSearch(e.target.value)}
-						placeholder='Enter location'
-						className='w-full px-4 py-3 pr-12 rounded-full border border-gray-300 text-[16px] text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
-						autoComplete='off'
-					/>
-					<div className='absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400'>
-						<MapPin className='w-5 h-5' />
+			<div className='mt-6 space-y-6 shrink-0'>
+				<div>
+					<label className='block text-[14px] font-semibold text-gray-700 mb-2'>
+						State
+					</label>
+					<div className='relative'>
+						<button
+							type='button'
+							onClick={() => {
+								setStateOpen(!stateOpen)
+								setCityOpen(false)
+							}}
+							className='w-full flex items-center justify-between px-4 py-3 rounded-full border border-gray-300 text-left text-[16px] text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
+						>
+							<span className={selectedState ? 'text-gray-900' : 'text-gray-400'}>
+								{selectedState?.label ?? 'Select state'}
+							</span>
+							<ChevronDown className='w-5 h-5 text-gray-500 shrink-0' />
+						</button>
+						{stateOpen && (
+							<ul className='absolute z-10 mt-1 w-full max-h-48 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg py-1'>
+								{NIGERIAN_STATES_SORTED.map((item) => (
+									<li key={item.value}>
+										<button
+											type='button'
+											onClick={() => handleStateSelect(item)}
+											className={`w-full text-left px-4 py-2.5 text-[16px] hover:bg-gray-50 ${
+												selectedState?.value === item.value ? 'bg-primary/10 text-primary font-medium' : 'text-gray-900'
+											}`}
+										>
+											{item.label}
+										</button>
+									</li>
+								))}
+							</ul>
+						)}
+					</div>
+				</div>
+
+				<div>
+					<label className='block text-[14px] font-semibold text-gray-700 mb-2'>
+						Local government
+					</label>
+					<div className='relative'>
+						<button
+							type='button'
+							disabled={!selectedState}
+							onClick={() => {
+								if (selectedState) {
+									setCityOpen(!cityOpen)
+									setStateOpen(false)
+								}
+							}}
+							className='w-full flex items-center justify-between px-4 py-3 rounded-full border border-gray-300 text-left text-[16px] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:opacity-60 disabled:cursor-not-allowed'
+						>
+							<span className={selectedCity ? 'text-gray-900' : 'text-gray-400'}>
+								{selectedCity?.label ?? 'Select local government'}
+							</span>
+							<ChevronDown className='w-5 h-5 text-gray-500 shrink-0' />
+						</button>
+						{cityOpen && selectedState && (
+							<ul className='absolute z-10 mt-1 w-full max-h-48 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg py-1'>
+								{localGovernments.map((item) => (
+									<li key={item.value}>
+										<button
+											type='button'
+											onClick={() => handleCitySelect(item)}
+											className={`w-full text-left px-4 py-2.5 text-[16px] hover:bg-gray-50 ${
+												selectedCity?.value === item.value ? 'bg-primary/10 text-primary font-medium' : 'text-gray-900'
+											}`}
+										>
+											{item.label}
+										</button>
+									</li>
+								))}
+							</ul>
+						)}
 					</div>
 				</div>
 			</div>
 
-			{/* Scrollable list */}
-			<div className='mt-4 overflow-y-auto flex-1 min-h-0 -mx-1 px-1'>
-				<ul className='space-y-0.5'>
-					{filteredLocations.map((item) => {
-						const letter = item.label.charAt(0).toUpperCase()
-						const isSelected =
-							selectedLocation?.value === item.value ||
-							selectedLocation === item.label
-						return (
-							<li key={item.value}>
-								<button
-									type='button'
-									onClick={() => setSelectedLocation(item)}
-									className={`w-full flex items-center gap-4 py-3 px-3 rounded-xl text-left transition-colors ${
-										isSelected ? 'bg-gray-100' : 'hover:bg-gray-50'
-									}`}
-								>
-									<div className='shrink-0 w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-[16px] font-semibold text-gray-700'>
-										{letter}
-									</div>
-									<span className='flex-1 min-w-0 text-[16px] font-medium text-gray-900'>
-										{item.label}
-									</span>
-									{isSelected && (
-										<Check className='w-5 h-5 text-gray-900 shrink-0' />
-									)}
-								</button>
-							</li>
-						)
-					})}
-				</ul>
-				{filteredLocations.length === 0 && (
-					<p className='py-8 text-center text-gray-500 text-[14px]'>
-						No locations match your search.
-					</p>
-				)}
-			</div>
-
-			{/* Footer: Cancel + Save */}
-			<div className='flex gap-3 mt-0 shrink-0 pt-4 border-t border-gray-100'>
+			<div className='flex gap-3 mt-8 shrink-0 pt-4 border-t border-gray-100'>
 				<button
 					type='button'
-					onClick={handleCancel}
+					onClick={onBack}
 					className='flex-1 py-3 rounded-full border border-gray-300 text-[16px] font-semibold text-gray-900 bg-white hover:bg-gray-50 transition-colors'
 				>
 					Cancel
@@ -117,9 +182,10 @@ const SetLocationView = ({ onBack, onSave, initialLocation = null }) => {
 				<button
 					type='button'
 					onClick={handleSave}
-					className='flex-1 py-3 rounded-full bg-primary text-white text-[16px] font-semibold hover:bg-primary/90 transition-colors'
+					disabled={isLoading}
+					className='flex-1 py-3 rounded-full bg-primary text-white text-[16px] font-semibold hover:bg-primary/90 transition-colors disabled:opacity-70'
 				>
-					Save
+					{isLoading ? 'Saving...' : 'Save'}
 				</button>
 			</div>
 		</div>
