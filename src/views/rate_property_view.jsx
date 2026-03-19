@@ -1,22 +1,10 @@
-import React, { useState, useRef } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { Star, ChevronLeft, ChevronRight } from 'lucide-react'
+import React, { useState } from 'react'
+import { useParams } from 'react-router-dom'
+import { Star } from 'lucide-react'
+import toast from 'react-hot-toast'
 import Footer from '../components/footer'
 import ReviewSubmittedWidget from '../components/review_submitted_widget'
-
-const CATEGORIES = [
-	'Popular apartments',
-	'Shop',
-	'Shortlet',
-	'Duplex',
-	'Bungalow',
-	'Flats',
-	'Room & Parlor',
-	'Event hall',
-	'Shopping hall',
-	'Selfcon',
-	'Store'
-]
+import propertyController from '../controllers/property_controller'
 
 const POPULAR_LOCATIONS = [
 	'Lagos', 'Benin', 'Kano', 'Abeokuta', 'Akure', 'Calabar',
@@ -48,12 +36,11 @@ const RatePropertyView = () => {
 	const { id } = useParams()
 	const [starRating, setStarRating] = useState(0)
 	const [hoverStar, setHoverStar] = useState(0)
+	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [selectedSentiment, setSelectedSentiment] = useState('poor')
 	const [comment, setComment] = useState('')
 	const [selectedTags, setSelectedTags] = useState([])
-	const [selectedCategory, setSelectedCategory] = useState('Popular apartments')
 	const [isReviewSubmittedOpen, setIsReviewSubmittedOpen] = useState(false)
-	const categoryRef = useRef(null)
 
 	const property = { ...DEFAULT_PROPERTY, id: id || DEFAULT_PROPERTY.id }
 
@@ -63,17 +50,35 @@ const RatePropertyView = () => {
 		)
 	}
 
-	const scrollCategories = (direction) => {
-		if (!categoryRef?.current) return
-		const amount = 200
-		categoryRef.current.scrollBy({
-			left: direction === 'right' ? amount : -amount,
-			behavior: 'smooth'
-		})
-	}
-
 	const displayStars = hoverStar || starRating
 	const commentCount = comment.length
+	const propertyId = id || property.id
+
+	const handleSubmitRating = () => {
+		if (!propertyId) {
+			toast.error('Property is required to submit review')
+			return
+		}
+		const rating = starRating || 0
+		if (rating < 1) {
+			toast.error('Please select a rating')
+			return
+		}
+		propertyController.addReview(
+			{
+				propertyId,
+				rating,
+				sentiment: selectedSentiment,
+				tags: selectedTags,
+				comment: comment.trim() || 'No comment'
+			},
+			{
+				setLoading: setIsSubmitting,
+				onSuccess: () => setIsReviewSubmittedOpen(true),
+				onError: (msg) => toast.error(msg ?? 'Failed to submit review')
+			}
+		)
+	}
 
 	return (
 		<>
@@ -109,7 +114,7 @@ const RatePropertyView = () => {
 							Tell us what you think about this property
 						</h2>
 
-						{/* Star rating */}
+						{/* Star rating - full stars only */}
 						<div className='flex items-center gap-1 mb-6'>
 							{[1, 2, 3, 4, 5].map((value) => (
 								<button
@@ -200,61 +205,18 @@ const RatePropertyView = () => {
 
 						<button
 							type='button'
-							onClick={() => setIsReviewSubmittedOpen(true)}
+							onClick={handleSubmitRating}
+							disabled={isSubmitting || starRating < 1}
 							className='mt-6 w-full py-3 rounded-full bg-primary 
-							    text-white font-semibold text-[16px] hover:bg-primary/90 transition-colors'
+							    text-white font-semibold text-[16px] hover:bg-primary/90 disabled:opacity-50 transition-colors'
 						>
-							Submit rating
+							{isSubmitting ? 'Submitting...' : 'Submit rating'}
 						</button>
 					</div>
 				</div>
 
-				{/* Find affordable properties */}
-				<div className='mb-12 mt-12'>
-					<div className='flex items-center justify-between mb-6'>
-						<h2 className='text-[24px] font-semibold text-gray-900'>
-							Find affordable properties near you!
-						</h2>
-						<div className='flex items-center gap-2 max-md:hidden'>
-							<button
-								type='button'
-								onClick={() => scrollCategories('left')}
-								className='w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors'
-							>
-								<ChevronLeft className='w-5 h-5 text-gray-700' />
-							</button>
-							<button
-								type='button'
-								onClick={() => scrollCategories('right')}
-								className='w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors'
-							>
-								<ChevronRight className='w-5 h-5 text-gray-700' />
-							</button>
-						</div>
-					</div>
-					<div
-						ref={categoryRef}
-						className='flex gap-3 overflow-x-auto pb-4 scrollbar-hide'
-					>
-						{CATEGORIES.map((category) => (
-							<button
-								key={category}
-								type='button'
-								onClick={() => setSelectedCategory(category)}
-								className={`shrink-0 px-6 py-3 rounded-full font-medium text-[16px] transition-colors ${
-									selectedCategory === category
-										? 'bg-gray-800 text-white'
-										: 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-								}`}
-							>
-								{category}
-							</button>
-						))}
-					</div>
-				</div>
-
 				{/* Popular locations */}
-				<div className='mb-1'>
+				<div className='mb-1 mt-30'>
 					<h2 className='text-[24px] font-semibold text-gray-900 mb-6'>
 						Popular locations
 					</h2>
