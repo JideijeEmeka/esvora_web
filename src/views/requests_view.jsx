@@ -1,49 +1,16 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import PropertyOwnerNavbar from '../components/property_owner_navbar'
+import Loader from '../components/loader'
 import Footer from '../components/footer'
 import ManageScheduleWidget from '../components/manage_schedule_widget'
 import { Settings, ChevronRight } from 'lucide-react'
 
-const SAMPLE_REQUESTS = [
-	{
-		id: 1,
-		type: 'schedule',
-		propertyType: 'Rent',
-		image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400',
-		title: 'Schedule Request',
-		timeAgo: '12 min',
-		message: 'You have a request schedule from',
-		requesterName: 'Osaite Emmanuel',
-		suffix: 'for one of your properties.',
-		participants: ['Osaite E', 'John Nathan', 'Giveon'],
-		participantsExtra: 3
-	},
-	{
-		id: 2,
-		type: 'schedule',
-		propertyType: 'Sale',
-		image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400',
-		title: 'Schedule Request',
-		timeAgo: '1 hr',
-		message: 'You have a request schedule from',
-		requesterName: 'John Nathan',
-		suffix: 'for one of your properties.',
-		participants: ['John Nathan', 'Giveon'],
-		participantsExtra: 2
-	},
-	{
-		id: 3,
-		type: 'reservation',
-		propertyType: 'Shortlet',
-		image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400',
-		title: 'Reservation',
-		timeAgo: '2 hr',
-		message: 'You have a reservation from',
-		requesterName: 'Osaite Emmanuel',
-		dateRange: 'Jan 25 - 28 2025'
-	}
-]
+import propertyController from '../controllers/property_controller'
+import { selectLandlordRequests } from '../redux/slices/propertySlice'
+import { normalizeLandlordRequest } from '../lib/propertyUtils'
+
 
 const FILTERS = ['New', 'Pending', 'Approved']
 
@@ -51,25 +18,55 @@ const RequestsView = () => {
 	const navigate = useNavigate()
 	const [activeFilter, setActiveFilter] = useState('New')
 	const [isManageScheduleOpen, setIsManageScheduleOpen] = useState(false)
+	const [isLoading, setIsLoading] = useState(true)
+	const landlordRequestsRaw = useSelector(selectLandlordRequests)
+	const allRequests = (landlordRequestsRaw ?? []).map(normalizeLandlordRequest).filter(Boolean)
+	const statusMap = {
+		New: ['new', 'pending'],
+		Pending: ['new', 'pending'],
+		Approved: ['accepted', 'approved']
+	}
+	const requests = allRequests.filter((r) => {
+		const s = (r?.status ?? r?.raw?.status ?? '').toLowerCase()
+		const allowed = statusMap[activeFilter]
+		return allowed ? allowed.includes(s) : true
+	})
 
 	useEffect(() => {
 		sessionStorage.setItem('propertyOwnerActiveTab', 'requests')
 	}, [])
 
-	const handleDecline = (id) => {
-		console.log('Decline request', id)
+	useEffect(() => {
+		setIsLoading(true)
+		propertyController.listLandlordRequests({
+			onSuccess: () => setIsLoading(false),
+			onError: () => setIsLoading(false)
+		})
+	}, [])
+
+	const handleDecline = (requestId) => {
+		propertyController.declineRequest(requestId, {
+			onSuccess: () => {
+				propertyController.listLandlordRequests({ forceRefetch: true })
+			}
+		})
 	}
 
-	const handleAccept = (id) => {
-		console.log('Accept request', id)
+	const handleAccept = (requestId) => {
+		propertyController.acceptRequest(requestId, {
+			onSuccess: () => {
+				propertyController.listLandlordRequests({ forceRefetch: true })
+			}
+		})
 	}
 
-	const handleCheckProperty = (id) => {
-		console.log('Check property', id)
+	const handleCheckProperty = (propId) => {
+		if (propId) navigate(`/property-details/${propId}`)
 	}
 
 	const handleViewParticipants = (request) => {
-		console.log('View participants', request)
+		// Could open a modal or navigate; for now navigate to details
+		if (request?.id) navigate(`/property-owner/requests/${request.id}`)
 	}
 
 	const handleCardClick = (requestId, e) => {
@@ -125,7 +122,13 @@ const RequestsView = () => {
 
 					{/* Request list */}
 					<div className='space-y-4'>
-						{SAMPLE_REQUESTS.map((request) => (
+						{isLoading ? (
+							<div className='flex justify-center py-12'>
+								<Loader />
+							</div>
+						) : requests.length === 0 ? (
+							<p className='text-gray-600 py-8'>No requests yet.</p>
+						) : requests.map((request) => (
 							<div
 								key={request.id}
 								role='button'
@@ -226,7 +229,7 @@ const RequestsView = () => {
 												type='button'
 												onClick={(e) => {
 													e.stopPropagation()
-													handleCheckProperty(request.id)
+													handleCheckProperty(request?.raw?.property?.id ?? request?.raw?.property?.uuid)
 												}}
 												className='px-4 py-2 rounded-full text-[14px] font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors'
 											>
