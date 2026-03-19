@@ -1,87 +1,73 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import PropertyOwnerNavbar from '../components/property_owner_navbar'
+import Loader from '../components/loader'
 import Footer from '../components/footer'
-
-const REQUEST_DETAILS_BY_ID = {
-	1: {
-		property: {
-			image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800',
-			price: '₦120,500',
-			description: '4 bedroom modern bungalow apartment',
-			location: 'Ikoyi, Lagos, Nigeria'
-		},
-		from: 'Osaite Emmanuel',
-		userInfo: {
-			fullName: 'Osaite Emmanuel',
-			email: 'emmanuelosaite@gmail.com',
-			phoneNumber: '090 5247 1033',
-			urgency: 'Urgent'
-		},
-		message:
-			'This is a test sample message from Nathan James. kindly proceed to do the needful a',
-		scheduleDate: 'Tuesday 24 Dec, 2025'
-	},
-	2: {
-		property: {
-			image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800',
-			price: '₦150,000',
-			description: '5 bedroom detached house',
-			location: 'Lekki, Lagos, Nigeria'
-		},
-		from: 'John Nathan',
-		userInfo: {
-			fullName: 'John Nathan',
-			email: 'johnnathan@example.com',
-			phoneNumber: '080 1234 5678',
-			urgency: 'Normal'
-		},
-		message: 'I am interested in scheduling a visit for this property. Please confirm availability.',
-		scheduleDate: 'Thursday 26 Dec, 2025'
-	},
-	3: {
-		property: {
-			image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800',
-			price: '₦95,000',
-			description: '3 bedroom luxury apartment',
-			location: 'Victoria Island, Lagos, Nigeria'
-		},
-		from: 'Osaite Emmanuel',
-		userInfo: {
-			fullName: 'Osaite Emmanuel',
-			email: 'emmanuelosaite@gmail.com',
-			phoneNumber: '090 5247 1033',
-			urgency: 'Urgent'
-		},
-		message: 'Reservation request for the dates indicated. Kindly confirm.',
-		scheduleDate: 'Jan 25 - 28 2025'
-	}
-}
+import propertyController from '../controllers/property_controller'
+import { selectShowRequest } from '../redux/slices/propertySlice'
+import { normalizeShowRequest } from '../lib/propertyUtils'
 
 const RequestDetailsView = () => {
 	const navigate = useNavigate()
 	const { id } = useParams()
-	const request = id ? REQUEST_DETAILS_BY_ID[Number(id)] : null
+	const [isLoading, setIsLoading] = useState(true)
+	const [loadError, setLoadError] = useState(null)
+	const showRequestRaw = useSelector(selectShowRequest)
+	const rawMatches = showRequestRaw && String(showRequestRaw?.id ?? showRequestRaw?.uuid) === String(id)
+	const request = rawMatches ? normalizeShowRequest(showRequestRaw) : null
 
 	useEffect(() => {
 		sessionStorage.setItem('propertyOwnerActiveTab', 'requests')
 	}, [])
+
+	useEffect(() => {
+		if (!id) {
+			setIsLoading(false)
+			setLoadError('Request not found')
+			return
+		}
+		setIsLoading(true)
+		setLoadError(null)
+		propertyController.showRequest(id, {
+			onSuccess: () => setIsLoading(false),
+			onError: (msg) => {
+				setLoadError(msg ?? 'Failed to load request')
+				setIsLoading(false)
+			}
+		})
+	}, [id])
 
 	const handleBack = () => {
 		navigate('/property-owner/requests')
 	}
 
 	const handleDecline = () => {
-		console.log('Decline request', id)
-		navigate('/property-owner/requests')
+		propertyController.declineRequest(id, {
+			onSuccess: () => navigate('/property-owner/requests'),
+			onError: () => {}
+		})
 	}
 
 	const handleAccept = () => {
-		console.log('Accept request', id)
-		navigate('/property-owner/requests')
+		propertyController.acceptRequest(id, {
+			onSuccess: () => navigate('/property-owner/requests'),
+			onError: () => {}
+		})
 	}
 
-	if (!request) {
+	if (isLoading) {
+		return (
+			<>
+				<PropertyOwnerNavbar />
+				<div className='pt-30 pb-10 px-6 md:px-16 lg:px-20 min-h-screen flex justify-center items-center bg-white'>
+					<Loader />
+				</div>
+			</>
+		)
+	}
+
+	if (loadError || !request) {
 		return (
 			<>
 				<PropertyOwnerNavbar />
