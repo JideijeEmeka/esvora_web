@@ -1,21 +1,43 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
+import { useSelector } from 'react-redux'
 import {
 	ChevronLeft,
+	ChevronRight,
 	Building2,
 	Plus,
 	Minus,
-	ArrowDownToLine,
-	Search,
-	Filter,
-	Calendar,
-	ChevronDown
+	RefreshCw
 } from 'lucide-react'
-import PaymentDetailsView from '../components/payment_details_view'
+import TransactionDetailsView from '../components/transaction_details_view'
+import TransactionsView from '../components/transactions_view'
 import AddMoneyView from './add_money_view'
+import ChooseDepositServiceView from './choose_deposit_service_view'
 import WithdrawMoneyView from './withdraw_money_view'
-import AddBankAccountDetailsView from './add_bank_account_details_view'
+import ChooseWithdrawalMethodView from './choose_withdrawal_method_view'
+import ProvideAccountDetailsView from './provide_account_details_view'
+import UpdateAccountDetailsView from './update_account_details_view'
 import WithdrawReviewView from './withdraw_review_view'
 import SuccessWidget from '../components/success_widget'
+import { selectFormattedBalance, selectRecentTransactions } from '../redux/slices/walletSlice'
+import walletController from '../controllers/wallet_controller'
+import Loader from '../components/loader'
+
+const mapApiTransactionToRow = (tx, index) => {
+	const desc = tx.description ?? tx.type ?? ''
+	const s = (tx.status ?? '').toLowerCase()
+	return {
+		id: tx.uuid ?? index,
+		initials: (desc || 'TX').slice(0, 2).toUpperCase(),
+		details: desc || tx.type || 'Transaction',
+		category: tx.type ?? 'Transaction',
+		amount: tx.formatted_amount ?? `₦${Number(tx.amount ?? 0).toLocaleString()}`,
+		status: (tx.status ?? 'Processing').charAt(0).toUpperCase() + (tx.status ?? '').slice(1),
+		statusVariant: s.includes('success') || s === 'completed' ? 'success' : 'processing',
+		date: tx.formatted_date ?? tx.formatted_datetime ?? tx.created_at ?? '',
+		fullDate: tx.formatted_date ?? tx.formatted_datetime ?? tx.created_at ?? '',
+		time: tx.formatted_datetime?.split(' ').pop() ?? ''
+	}
+}
 
 const SAMPLE_TRANSACTIONS = [
 	{
@@ -71,19 +93,43 @@ const SAMPLE_TRANSACTIONS = [
 const WalletView = ({
 	onBack,
 	onAddMoneyClick,
-	balance = '₦123,000.00',
-	transactions = SAMPLE_TRANSACTIONS,
-	availableBalance = '350.00'
+	availableBalance = '0.00'
 }) => {
-	const [searchQuery, setSearchQuery] = useState('')
+	const balance = useSelector(selectFormattedBalance) || '₦0.00'
+	const recentTransactionsRaw = useSelector(selectRecentTransactions)
+	const transactions = useMemo(
+		() => (Array.isArray(recentTransactionsRaw) && recentTransactionsRaw.length > 0
+			? recentTransactionsRaw.map(mapApiTransactionToRow)
+			: SAMPLE_TRANSACTIONS),
+		[recentTransactionsRaw]
+	)
+	useEffect(() => {
+		walletController.getWalletBalance({ onError: () => {} })
+		walletController.getRecentTransactions({
+			setLoading: setIsRefreshingTransactions,
+			onError: () => {}
+		})
+	}, [])
+	const [isRefreshingBalance, setIsRefreshingBalance] = useState(false)
+	const [isRefreshingTransactions, setIsRefreshingTransactions] = useState(false)
 	const [selectedTransaction, setSelectedTransaction] = useState(null)
 	const [showAddMoney, setShowAddMoney] = useState(false)
-	const [showWithdraw, setShowWithdraw] = useState(false)
-	const [showAddBankAccount, setShowAddBankAccount] = useState(false)
-	const [showWithdrawReview, setShowWithdrawReview] = useState(false)
+	const [depositAmount, setDepositAmount] = useState(null)
+	const [withdrawSubView, setWithdrawSubView] = useState(null) // null | 'choose' | 'amount' | 'add_account' | 'update_account' | 'review'
+	const [selectedWithdrawMethod, setSelectedWithdrawMethod] = useState(null)
+	const [methodToEdit, setMethodToEdit] = useState(null)
+	const [withdrawPreview, setWithdrawPreview] = useState(null)
 	const [showWithdrawSuccess, setShowWithdrawSuccess] = useState(false)
-	const [withdrawAmount, setWithdrawAmount] = useState(null)
-	const [withdrawAccountDetails, setWithdrawAccountDetails] = useState(null)
+	const [showAllTransactions, setShowAllTransactions] = useState(false)
+
+	const handleRefreshBalance = () => {
+		setIsRefreshingBalance(true)
+		walletController.getWalletBalance({
+			setLoading: setIsRefreshingBalance,
+			forceRefetch: true,
+			onError: () => {}
+		})
+	}
 
 	const handleAddMoneyClick = () => {
 		setShowAddMoney(true)
@@ -92,105 +138,178 @@ const WalletView = ({
 
 	const handleAddMoneyBack = () => {
 		setShowAddMoney(false)
+		setDepositAmount(null)
 	}
 
 	const handleAddMoneyContinue = (amount) => {
-		console.log('Amount to add:', amount)
+		setDepositAmount(amount)
 		setShowAddMoney(false)
 	}
 
+	const handleChooseDepositServiceBack = () => {
+		setDepositAmount(null)
+		setShowAddMoney(true)
+	}
+
+	const handleDepositComplete = () => {
+		setDepositAmount(null)
+		walletController.getWalletBalance({ forceRefetch: true, onError: () => {} })
+		walletController.getRecentTransactions({ forceRefetch: true, onError: () => {} })
+	}
+
 	const handleWithdrawClick = () => {
-		setShowWithdraw(true)
+		setWithdrawSubView('choose')
+		setSelectedWithdrawMethod(null)
+		setWithdrawPreview(null)
 	}
 
 	const handleWithdrawBack = () => {
-		setShowWithdraw(false)
+		setWithdrawSubView(null)
+		setSelectedWithdrawMethod(null)
+		setWithdrawPreview(null)
 	}
 
-	const handleWithdrawContinue = (amount) => {
-		setWithdrawAmount(amount)
-		setShowWithdraw(false)
-		setShowAddBankAccount(true)
+	const handleChooseMethodBack = () => {
+		setWithdrawSubView(null)
+		setSelectedWithdrawMethod(null)
 	}
 
-	const handleAddBankAccountBack = () => {
-		setShowAddBankAccount(false)
-		setShowWithdraw(true)
+	const handleSelectWithdrawMethod = (method) => {
+		setSelectedWithdrawMethod(method)
+		setWithdrawSubView('amount')
 	}
 
-	const handleAddAccount = (payload) => {
-		setWithdrawAccountDetails({ accountNumber: payload.accountNumber, bank: payload.bank })
-		setShowAddBankAccount(false)
-		setShowWithdrawReview(true)
+	const handleAddNewMethod = () => {
+		setWithdrawSubView('add_account')
+	}
+
+	const handleProvideAccountBack = () => {
+		setWithdrawSubView('choose')
+	}
+
+	const handleProvideAccountSuccess = () => {
+		setWithdrawSubView('choose')
+	}
+
+	const handleEditMethod = (method) => {
+		setMethodToEdit(method)
+		setWithdrawSubView('update_account')
+	}
+
+	const handleUpdateAccountBack = () => {
+		setMethodToEdit(null)
+		setWithdrawSubView('choose')
+	}
+
+	const handleUpdateAccountSuccess = () => {
+		setMethodToEdit(null)
+		setWithdrawSubView('choose')
+	}
+
+	const handleWithdrawAmountBack = () => {
+		setWithdrawSubView('choose')
+		setSelectedWithdrawMethod(null)
+	}
+
+	const handleWithdrawAmountContinue = ({ preview, withdrawalMethod }) => {
+		setWithdrawPreview(preview)
+		setSelectedWithdrawMethod(withdrawalMethod)
+		setWithdrawSubView('review')
 	}
 
 	const handleWithdrawReviewBack = () => {
-		setShowWithdrawReview(false)
-		setShowAddBankAccount(true)
+		setWithdrawSubView('amount')
+		setWithdrawPreview(null)
 	}
 
 	const handleChangeAccount = () => {
-		setShowWithdrawReview(false)
-		setShowAddBankAccount(true)
+		setWithdrawSubView('choose')
+		setWithdrawPreview(null)
+		setSelectedWithdrawMethod(null)
 	}
 
 	const handleWithdrawConfirm = () => {
-		console.log('Withdraw confirmed', { withdrawAmount, withdrawAccountDetails })
-		setShowWithdrawReview(false)
+		setWithdrawSubView(null)
+		setSelectedWithdrawMethod(null)
+		setWithdrawPreview(null)
 		setShowWithdrawSuccess(true)
 	}
 
 	const handleWithdrawSuccessClose = () => {
 		setShowWithdrawSuccess(false)
-		setWithdrawAmount(null)
-		setWithdrawAccountDetails(null)
+		walletController.getWalletBalance({ forceRefetch: true, onError: () => {} })
+		walletController.getRecentTransactions({ forceRefetch: true, onError: () => {} })
 	}
 
-	// Show Add Money View if active
+	// Add money flow: AddMoneyView → ChooseDepositServiceView (with amount)
 	if (showAddMoney) {
 		return (
 			<AddMoneyView
 				onBack={handleAddMoneyBack}
 				onContinue={handleAddMoneyContinue}
-				availableBalance={availableBalance}
-				defaultAmount='123,000'
+				availableBalance={balance || availableBalance}
+				defaultAmount='100,000'
 			/>
 		)
 	}
 
-	// Show Withdraw View if active
-	if (showWithdraw) {
+	if (depositAmount != null) {
+		return (
+			<ChooseDepositServiceView
+				amount={depositAmount}
+				onBack={handleChooseDepositServiceBack}
+				onComplete={handleDepositComplete}
+			/>
+		)
+	}
+
+	// Withdraw flow: choose method → amount → review (or add account from choose)
+	if (withdrawSubView === 'choose') {
+		return (
+			<ChooseWithdrawalMethodView
+				onBack={handleChooseMethodBack}
+				onSelectMethod={handleSelectWithdrawMethod}
+				onAddNew={handleAddNewMethod}
+				onEditMethod={handleEditMethod}
+			/>
+		)
+	}
+	if (withdrawSubView === 'update_account' && methodToEdit) {
+		return (
+			<UpdateAccountDetailsView
+				method={methodToEdit}
+				onBack={handleUpdateAccountBack}
+				onSuccess={handleUpdateAccountSuccess}
+			/>
+		)
+	}
+	if (withdrawSubView === 'add_account') {
+		return (
+			<ProvideAccountDetailsView
+				onBack={handleProvideAccountBack}
+				onSuccess={handleProvideAccountSuccess}
+			/>
+		)
+	}
+	if (withdrawSubView === 'amount') {
 		return (
 			<WithdrawMoneyView
-				onBack={handleWithdrawBack}
-				onContinue={handleWithdrawContinue}
-				availableBalance={availableBalance}
+				onBack={handleWithdrawAmountBack}
+				onContinue={handleWithdrawAmountContinue}
+				selectedMethod={selectedWithdrawMethod}
+				availableBalance={balance || availableBalance}
 				defaultAmount=''
 			/>
 		)
 	}
-
-	// Show Add Bank Account Details (after withdraw amount)
-	if (showAddBankAccount) {
-		return (
-			<AddBankAccountDetailsView
-				onBack={handleAddBankAccountBack}
-				onAddAccount={handleAddAccount}
-				withdrawAmount={withdrawAmount}
-			/>
-		)
-	}
-
-	// Show Withdraw Review (after add account)
-	if (showWithdrawReview) {
+	if (withdrawSubView === 'review') {
 		return (
 			<WithdrawReviewView
 				onBack={handleWithdrawReviewBack}
 				onChangeAccount={handleChangeAccount}
 				onWithdraw={handleWithdrawConfirm}
-				accountNumber={withdrawAccountDetails?.accountNumber}
-				bank={withdrawAccountDetails?.bank}
-				withdrawAmount={withdrawAmount}
+				preview={withdrawPreview}
+				withdrawalMethod={selectedWithdrawMethod}
 			/>
 		)
 	}
@@ -212,13 +331,26 @@ const WalletView = ({
 			)}
 
 			{/* Balance */}
-			<div className='mb-6'>
-				<p className='text-[32px] font-bold text-gray-900 tracking-tight'>
-					{balance}
-				</p>
-				<p className='text-[14px] text-gray-500'>
-					Total Balance
-				</p>
+			<div className='mb-6 flex items-start gap-3'>
+				<div>
+					<p className='text-[32px] font-bold text-gray-900 tracking-tight'>
+						{balance}
+					</p>
+					<p className='text-[14px] text-gray-500'>
+						Total Balance
+					</p>
+				</div>
+				<button
+					type='button'
+					onClick={handleRefreshBalance}
+					disabled={isRefreshingBalance}
+					className='p-2 rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-700 disabled:opacity-50 transition-colors mt-1'
+					aria-label='Refresh balance'
+				>
+					<RefreshCw
+						className={`w-5 h-5 ${isRefreshingBalance ? 'animate-spin' : ''}`}
+					/>
+				</button>
 			</div>
 
 			{/* Add money & Withdraw cards */}
@@ -259,40 +391,13 @@ const WalletView = ({
 				</button>
 			</div>
 
-			{/* Search and filters */}
-			<div className='flex flex-col sm:flex-row gap-3 mb-6'>
-				<div className='relative flex-1'>
-					<Search className='absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400' />
-					<input
-						type='search'
-						value={searchQuery}
-						onChange={(e) => setSearchQuery(e.target.value)}
-						placeholder='Search transaction'
-						className='w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 text-[16px] text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
-						aria-label='Search transaction'
-					/>
-				</div>
-				<div className='flex gap-2'>
-					<button
-						type='button'
-						className='inline-flex items-center gap-2 px-4 py-3 rounded-xl border border-gray-300 text-[14px] font-medium text-gray-700 hover:bg-gray-50 transition-colors'
-					>
-						<Filter className='w-4 h-4' />
-						Filter
-						<ChevronDown className='w-4 h-4' />
-					</button>
-					<button
-						type='button'
-						className='inline-flex items-center gap-2 px-4 py-3 rounded-xl border border-gray-300 text-[14px] font-medium text-gray-700 hover:bg-gray-50 transition-colors'
-					>
-						<Calendar className='w-4 h-4' />
-						Date/time
-						<ChevronDown className='w-4 h-4' />
-					</button>
-				</div>
-			</div>
-
 			{/* Transaction table */}
+			{isRefreshingTransactions && recentTransactionsRaw.length === 0 ? (
+				<div className='flex justify-center py-16'>
+					<Loader />
+				</div>
+			) : (
+			<>
 			<div className='overflow-x-auto -mx-2'>
 				<table className='w-full min-w-[600px]'>
 					<thead>
@@ -357,13 +462,30 @@ const WalletView = ({
 				</table>
 			</div>
 
-			<p className='mt-4 text-[14px] text-gray-500'>
-				Showing {transactions.length} results
-			</p>
+			<div className='mt-4 flex flex-wrap items-center justify-between gap-3'>
+				<p className='text-[14px] text-gray-500'>
+					Showing {transactions.length} results
+				</p>
+				<button
+					type='button'
+					onClick={() => setShowAllTransactions(true)}
+					className='inline-flex items-center gap-1.5 text-[14px] font-medium text-primary hover:text-primary/80 transition-colors'
+				>
+					See all transactions
+					<ChevronRight className='w-4 h-4' />
+				</button>
+			</div>
+			</>
+			)}
 
-			{/* Payment Details View */}
+			{/* All transactions slide-in view */}
+			{showAllTransactions && (
+				<TransactionsView onClose={() => setShowAllTransactions(false)} />
+			)}
+
+			{/* Transaction Details View */}
 			{selectedTransaction && (
-				<PaymentDetailsView
+				<TransactionDetailsView
 					transaction={selectedTransaction}
 					onClose={() => setSelectedTransaction(null)}
 				/>
