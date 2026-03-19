@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeftIcon } from 'lucide-react'
 import ButtonWidget from '../../components/button'
-import Navbar from '../../components/navbar'
 import { CheckIcon } from 'lucide-react'
 import { validatePassword } from '../../lib/validation'
 
@@ -16,12 +15,11 @@ const ChangePasswordView = () => {
     
   return (
     <>
-        <Navbar />
         <div className='w-full h-screen md:fixed max-md:items-center max-md:justify-start
-          flex items-center justify-center px-6 lg:px-30 md:py-1 max-md:py-30 flex-col'>
-            <div className='w-[400px] max-md:w-full md:mt-6 max-md:px-7 flex items-start justify-start'>
+          flex items-center justify-center px-6 lg:px-30 pt-4 pb-8 flex-col'>
+            <div className='w-[400px] max-md:w-full max-md:px-7 flex items-start justify-start'>
                 <button className='bg-white text-gray-700 px-3 py-1.5 text-[14px] 
-                max-md:mt-2 max-md:mb-6 mt-6 mb-2
+                mb-2
                 flex items-center gap-2 hover:bg-primary/80 hover:scale-105 border border-gray-300
                 transition rounded-full font-semibold hover:text-white cursor-pointer' 
                 onClick={() => navigate(-1)}><ArrowLeftIcon className='w-4 h-4' />Back</button>
