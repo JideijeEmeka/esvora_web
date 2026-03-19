@@ -1,10 +1,12 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { ChevronLeft, ChevronRight, Building2 } from 'lucide-react'
-
-const FEE_NGN = 1200
+import { useSelector } from 'react-redux'
+import toast from 'react-hot-toast'
+import walletController from '../controllers/wallet_controller'
+import { selectCurrentAccount } from '../redux/slices/accountSlice'
 
 const formatAmount = (num) => {
-	if (!num || isNaN(num)) return '0.00'
+	if (num == null || isNaN(Number(num))) return '0.00'
 	return Number(num).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
@@ -12,20 +14,34 @@ const WithdrawReviewView = ({
 	onBack,
 	onChangeAccount,
 	onWithdraw,
-	accountNumber = '',
-	bank = '',
-	withdrawAmount = '0',
-	accountHolderName = 'Osaite Emmanuel',
-	service = 'Sales',
-	receivingAccountNumber = '2309090903',
-	receivingBank = 'United Bank for Africa'
+	preview,
+	withdrawalMethod
 }) => {
-	const amountNum = parseFloat(String(withdrawAmount).replace(/,/g, '')) || 0
-	const fee = FEE_NGN
-	const youGet = Math.max(0, amountNum - fee)
+	const account = useSelector(selectCurrentAccount)
+	const [isSubmitting, setIsSubmitting] = useState(false)
+
+	const method = withdrawalMethod ?? {}
+	const accNumber = method.account_number ?? method.accountNumber ?? '—'
+	const bank = method.bank_name ?? method.bankName ?? '—'
+	const accountHolderName = method.account_name ?? method.accountName ?? account?.fullname ?? '—'
+	const youGet = preview?.net_amount ?? preview?.netAmount ?? 0
+	const fee = preview?.fee ?? 0
+	const timeText = preview?.estimated_arrival ?? preview?.estimatedArrival ?? 'Arrives in ≈24hrs'
+	const amountToSubmit = preview?.net_amount ?? preview?.netAmount
+	const methodId = method.id ?? method.uuid
 
 	const handleWithdraw = () => {
-		onWithdraw?.()
+		if (!methodId || !amountToSubmit || amountToSubmit <= 0 || isSubmitting) return
+		setIsSubmitting(true)
+		walletController.createWithdrawal({
+			amount: amountToSubmit,
+			withdrawalMethodUuid: methodId,
+			setLoading: setIsSubmitting,
+			onSuccess: () => {
+				onWithdraw?.()
+			},
+			onError: (m) => toast.error(m ?? 'Withdrawal failed')
+		})
 	}
 
 	return (
@@ -53,7 +69,7 @@ const WithdrawReviewView = ({
 				<div className='flex items-center justify-between gap-2'>
 					<div className='flex items-center gap-2'>
 						<span className='text-[16px] font-medium text-gray-900'>
-							{accountNumber || '—'} • {bank || '—'}
+							{accNumber} • {bank}
 						</span>
 						<Building2 className='w-5 h-5 text-gray-400 shrink-0' />
 					</div>
@@ -82,7 +98,7 @@ const WithdrawReviewView = ({
 					</div>
 					<div className='flex justify-between text-[14px]'>
 						<dt className='text-gray-500'>Service</dt>
-						<dd className='font-medium text-gray-900'>{service}</dd>
+						<dd className='font-medium text-gray-900'>Withdrawal</dd>
 					</div>
 				</dl>
 			</div>
@@ -94,7 +110,7 @@ const WithdrawReviewView = ({
 				</h3>
 				<dl className='space-y-2'>
 					<div className='flex justify-between text-[14px]'>
-						<dt className='text-gray-500'>You&apos;ll get</dt>
+						<dt className='text-gray-500'>You&apos;ll receive</dt>
 						<dd className='font-medium text-gray-900'>NGN {formatAmount(youGet)}</dd>
 					</div>
 					<div className='flex justify-between text-[14px]'>
@@ -103,24 +119,7 @@ const WithdrawReviewView = ({
 					</div>
 					<div className='flex justify-between text-[14px]'>
 						<dt className='text-gray-500'>Time</dt>
-						<dd className='font-medium text-gray-900'>Arrives in ≈ 24hrs</dd>
-					</div>
-				</dl>
-			</div>
-
-			{/* Receiving wallet */}
-			<div className='mb-8 p-4 rounded-xl bg-gray-50 border border-gray-100'>
-				<h3 className='text-[14px] font-semibold text-gray-900 mb-3'>
-					Receiving wallet
-				</h3>
-				<dl className='space-y-2'>
-					<div className='flex justify-between text-[14px]'>
-						<dt className='text-gray-500'>Account Number</dt>
-						<dd className='font-medium text-gray-900'>{receivingAccountNumber}</dd>
-					</div>
-					<div className='flex justify-between text-[14px]'>
-						<dt className='text-gray-500'>Bank</dt>
-						<dd className='font-medium text-gray-900'>{receivingBank}</dd>
+						<dd className='font-medium text-gray-900'>{timeText}</dd>
 					</div>
 				</dl>
 			</div>
@@ -128,9 +127,10 @@ const WithdrawReviewView = ({
 			<button
 				type='button'
 				onClick={handleWithdraw}
-				className='w-full bg-primary text-white px-6 py-4 rounded-xl text-[16px] font-semibold hover:bg-primary/90 transition-colors'
+				disabled={isSubmitting || !methodId}
+				className='w-full bg-primary text-white px-6 py-4 rounded-xl text-[16px] font-semibold hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
 			>
-				Withdraw money
+				{isSubmitting ? 'Processing...' : 'Confirm'}
 			</button>
 		</div>
 	)
