@@ -23,9 +23,11 @@ export function normalizeProperty(p) {
 	const bathrooms = p.no_of_bathrooms ?? p.bathrooms ?? 0
 	const furnishing = p.furnishing ?? ''
 	const state = p.state ?? ''
+	const reviews = Array.isArray(p.reviews) ? p.reviews : []
 	return {
 		...p,
 		id,
+		reviews,
 		uuid: id,
 		image,
 		images,
@@ -65,6 +67,11 @@ export function normalizePropertyDetails(p) {
 		: []
 	const houseRegs = p.house_regulations ?? p.regulations ?? []
 	const regulations = Array.isArray(houseRegs) ? houseRegs : (typeof houseRegs === 'string' ? [houseRegs] : [])
+	const reviews = Array.isArray(p.reviews) ? p.reviews : []
+	const avgRatingFromReviews =
+		reviews.length > 0
+			? reviews.reduce((s, r) => s + (Number(r.rating) || 0), 0) / reviews.length
+			: null
 	const paymentInfo = p.payment_info ?? p.paymentInfo ?? {}
 	const pi = typeof paymentInfo === 'object' ? paymentInfo : {}
 	// Build from price model: { total, other_fees, rentage_fee, rentage_type }
@@ -100,8 +107,8 @@ export function normalizePropertyDetails(p) {
 		property_type: p.property_type ?? p.propertyType ?? '',
 		bedrooms: p.no_of_bedrooms ?? p.bedrooms ?? 0,
 		bathrooms: p.no_of_bathrooms ?? p.bathrooms ?? 0,
-		rating: p.rating ?? 4.0,
-		reviewCount: p.review_count ?? p.reviews_count ?? 0,
+		rating: p.rating ?? avgRatingFromReviews ?? 4.0,
+		reviewCount: p.review_count ?? p.reviews_count ?? reviews.length,
 		about: p.about ?? p.description ?? '',
 		features: featuresList,
 		landlord: {
@@ -120,7 +127,7 @@ export function normalizePropertyDetails(p) {
 			rentage_type: priceData.rentage_type
 		},
 		regulations,
-		reviews: p.reviews ?? [],
+		reviews,
 		relatedProperties: p.related_properties ?? []
 	}
 }
@@ -232,6 +239,7 @@ export function normalizeShowRequest(r) {
 		},
 		message: r.message ?? r.summary_subtitle ?? '',
 		scheduleDate: duration.label ?? (duration.check_in && duration.check_out ? `${duration.check_in} - ${duration.check_out}` : null) ?? r.schedule_date ?? '—',
+		status: (r.status ?? '').toLowerCase(),
 		raw: r
 	}
 }
