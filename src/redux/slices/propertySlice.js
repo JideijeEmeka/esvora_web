@@ -47,6 +47,22 @@ const propertySlice = createSlice({
 		},
 		updateLandlordProperties: (state, action) => {
 			state.landlordProperties = Array.isArray(action.payload) ? action.payload : []
+		},
+		updateLandlordRequestStatus: (state, action) => {
+			const { requestId, status } = action.payload ?? {}
+			if (!requestId || !status) return
+			state.landlordRequests = (state.landlordRequests ?? []).map((req) => {
+				const reqId = req?.id ?? req?.uuid
+				if (String(reqId) !== String(requestId)) return req
+				return { ...req, status }
+			})
+		},
+		updateShowRequestStatus: (state, action) => {
+			const { requestId, status } = action.payload ?? {}
+			if (!requestId || !status || !state.showRequest) return
+			const showId = state.showRequest?.id ?? state.showRequest?.uuid
+			if (String(showId) !== String(requestId)) return
+			state.showRequest = { ...state.showRequest, status }
 		}
 	}
 })
@@ -59,7 +75,9 @@ export const {
 	updateShowRequest,
 	updatePropertyTypes,
 	updatePropertyTypeDetails,
-	updateLandlordProperties
+	updateLandlordProperties,
+	updateLandlordRequestStatus,
+	updateShowRequestStatus
 } = propertySlice.actions
 
 export const selectProperties = (state) => state[kPropertySlice]?.properties ?? []
