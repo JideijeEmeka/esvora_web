@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import Navbar from './components/navbar'
 import PropertyOwnerNavbar from './components/property_owner_navbar'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { store } from './redux/store'
 import { authApi } from './repository/auth_repository'
 import { updateAccount, selectCurrentAccount } from './redux/slices/accountSlice'
@@ -22,10 +22,14 @@ import ResetPasswordSuccessView from './views/auth/reset_password_success_view'
 import ExploreView from './views/explore_view'
 import PropertyDetailsView from './views/property_details_view'
 import MyPropertyDetailsView from './views/my_property_details_view'
+import PropertyOwnerMyPropertyDetailsView from './views/property_owner_my_property_details_view'
 import ReviewsView from './views/reviews_view'
+import AllPropertyReviewsView from './views/all_property_reviews_view'
+import PropertyOwnerReviewsView from './views/property_owner_reviews_view'
 import MyPropertiesView from './views/properties_view'
 import FavoritesView from './views/favorites_view'
 import RatePropertyView from './views/rate_property_view'
+import PropertyOwnerRatePropertyView from './views/property_owner_rate_property_view'
 import ScheduleInspectionView from './views/schedule_inspection_view'
 import PaymentView from './views/payment_view'
 import ProfileView from './views/profile_view'
@@ -34,6 +38,7 @@ import RentView from './views/rent_view'
 import ShortletView from './views/shortlet_view'
 import LandlordDetailsView from './views/landlord_details_view'
 import PropertyOwnerView from './views/property_owner_view'
+import PropertyOwnerMyPropertiesView from './views/property_owner_my_properties_view'
 import RequestsView from './views/requests_view'
 import MyRequestsView from './views/my_requests_view'
 import RequestDetailsView from './views/request_details_view'
@@ -71,9 +76,12 @@ import AddForSaleBedroomsView from './views/add_for_sale_bedrooms_view'
 import AddForSaleImagesView from './views/add_for_sale_images_view'
 import AddForSaleSummaryInfoView from './views/add_for_sale_summary_info_view'
 import MessagesView from './views/messages_view'
+import PropertyOwnerMessagesView from './views/property_owner_messages_view'
+import NotificationDetailsView from './views/notification_details_view'
 import CreatePasswordView from './views/auth/create_password_view'
 import UpdateNameView from './views/auth/update_name_view'
 import SetAvatarView from './views/auth/set_avatar_view'
+import TermsAndConditionsView from './views/terms_and_conditions_view'
 
 const AUTH_PATHS = ['/', '/sign-up', '/login', '/register', '/otp', '/create-password', '/update-name', '/set-avatar', '/change-password', '/forgot-password', '/reset-password', '/forgot-password-otp', '/reset-password-success']
 
@@ -126,11 +134,26 @@ const App = () => {
         <Route path="/requests" element={<MyRequestsView />} />
         <Route path="/property-details/:id" element={<PropertyDetailsView />} />
         <Route path="/my-property-details/:id" element={<MyPropertyDetailsView />} />
+        <Route path="/property-owner/my-property-details/:id" element={<PropertyOwnerMyPropertyDetailsView />} />
         <Route path="/reviews" element={<ReviewsView />} />
-        <Route path="/my-properties" element={<MyPropertiesView />} />
+        <Route path="/all-reviews" element={<AllPropertyReviewsView />} />
+        <Route
+          path="/my-properties"
+          element={
+            account?.landlord_dashboard ? (
+              <Navigate to="/property-owner/my-properties" replace />
+            ) : (
+              <MyPropertiesView />
+            )
+          }
+        />
         <Route path="/property-owner" element={<PropertyOwnerView />} />
+        <Route path="/property-owner/my-properties" element={<PropertyOwnerMyPropertiesView />} />
+        <Route path="/property-owner/message" element={<PropertyOwnerMessagesView />} />
+        <Route path="/property-owner/reviews" element={<PropertyOwnerReviewsView />} />
         <Route path="/property-owner/requests" element={<RequestsView />} />
         <Route path="/property-owner/requests/:id" element={<RequestDetailsView />} />
+        <Route path="/notification/:id" element={<NotificationDetailsView />} />
         <Route path="/property-owner/listings" element={<AddPropertyView />} />
         <Route path="/property-owner/listings/edit/:id" element={<EditListingView />} />
         <Route path="/property-owner/add-property/basic-info" element={<AddPropertyBasicInfoFormView />} />
@@ -161,9 +184,11 @@ const App = () => {
         <Route path="/property-owner/add-shortlet/summary" element={<AddShortletSummaryInfoView />} />
         <Route path="/favourites" element={<FavoritesView />} />
         <Route path="/rate-property/:id?" element={<RatePropertyView />} />
+        <Route path="/property_owner/rate-property/:id?" element={<PropertyOwnerRatePropertyView />} />
         <Route path="/schedule-inspection/:id?" element={<ScheduleInspectionView />} />
         <Route path="/payment/:id?" element={<PaymentView />} />
         <Route path="/profile" element={<ProfileView />} />
+        <Route path="/terms" element={<TermsAndConditionsView onBack={() => window.history.back()} />} />
         <Route path="/landlord-details" element={<LandlordDetailsView />} />
       </Routes>
       <Toaster />
