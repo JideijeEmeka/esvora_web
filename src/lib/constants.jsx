@@ -26,6 +26,7 @@ export const kAgreementEndpoints = 'agreement_endpoints'
 export const kWalletEndpoints = 'wallet_endpoints'
 export const kTenantEndpoints = 'tenant_endpoints'
 export const kPropertyEndpoints = 'property_endpoints'
+export const kNotificationEndpoints = 'notification_endpoints'
 
 /** Redux state key for user slice */
 export const kAccountSlice = 'account_slice'
@@ -42,6 +43,10 @@ export const kPropertySlice = 'property_slice'
 
 /** localStorage key for auth token */
 export const kToken = 'auth_token'
+
+/** Support contact (configure as needed) */
+export const kSupportWhatsAppNumber = '2348084794951'
+export const kSupportPhoneNumber = '+2348084794951'
 
 /** Deposit gateway values */
 export const kPayStack = 'paystack'
