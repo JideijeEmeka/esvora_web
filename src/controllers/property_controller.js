@@ -8,7 +8,9 @@ import {
 	updatePropertyDetails,
 	updateShowRequest,
 	updatePropertyTypes,
-	updateLandlordProperties
+	updateLandlordProperties,
+	updateLandlordRequestStatus,
+	updateShowRequestStatus
 } from '../redux/slices/propertySlice'
 
 const errMsg = (err, fallback) => {
@@ -78,6 +80,8 @@ class PropertyController {
 				onError?.(errMsg(res.error, 'Failed to accept request'))
 				return
 			}
+			store.dispatch(updateLandlordRequestStatus({ requestId, status: 'accepted' }))
+			store.dispatch(updateShowRequestStatus({ requestId, status: 'accepted' }))
 			onSuccess?.(res.data)
 		} catch (e) {
 			onError?.(errMsg(e, 'Failed to accept request'))
@@ -92,6 +96,8 @@ class PropertyController {
 				onError?.(errMsg(res.error, 'Failed to decline request'))
 				return
 			}
+			store.dispatch(updateLandlordRequestStatus({ requestId, status: 'declined' }))
+			store.dispatch(updateShowRequestStatus({ requestId, status: 'declined' }))
 			onSuccess?.(res.data)
 		} catch (e) {
 			onError?.(errMsg(e, 'Failed to decline request'))
