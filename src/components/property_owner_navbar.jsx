@@ -3,6 +3,7 @@ import React, { useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import { useSelector } from 'react-redux'
+import { useLazyGetUnreadCountQuery } from '../repository/notification_repository'
 import { selectCurrentAccount } from '../redux/slices/accountSlice'
 import logo from '../assets/logo.png'
 import NotificationWidget from './notification_widget'
@@ -15,24 +16,38 @@ function getAvatarSrc(avatar) {
 	return `${DICEBEAR_ADVENTURER}?seed=${encodeURIComponent(avatar)}`
 }
 
+const NOTIFICATIONS_OPEN_KEY = 'esvora_notifications_panel_open'
+
 const PropertyOwnerNavbar = () => {
 	const account = useSelector(selectCurrentAccount)
 	const [isOpen, setIsOpen] = useState(false)
-	const [isNotificationOpen, setIsNotificationOpen] = useState(false)
+	const [isNotificationOpen, setIsNotificationOpen] = useState(
+		() => sessionStorage.getItem(NOTIFICATIONS_OPEN_KEY) === '1'
+	)
+	const [fetchUnreadCount, { data: unreadCountData }] = useLazyGetUnreadCountQuery()
+	const unreadCount = unreadCountData ?? 0
 	const location = useLocation()
+
+	useEffect(() => {
+		fetchUnreadCount()
+	}, [fetchUnreadCount])
 	const avatarSrc = getAvatarSrc(account?.avatar ?? account?.avatar_url ?? account?.profile_image)
+	const isSaleRoute = location.pathname.startsWith('/property-owner/sale') || location.pathname.startsWith('/property-owner/add-sale')
 
 	// Get active tab from sessionStorage or determine from pathname
 	const getActiveTab = () => {
-		const storedTab = sessionStorage.getItem('propertyOwnerActiveTab')
-		if (storedTab) return storedTab
-
-		// Default based on pathname
-		if (location.pathname === '/property-owner/listings') return 'listings'
-		if (location.pathname === '/my-properties') return 'my-properties'
+		// Prefer pathname mapping so active state stays accurate.
+		if (location.pathname.startsWith('/property-owner/listings')) return 'listings'
+		if (location.pathname === '/property-owner/my-properties') return 'my-properties'
 		if (location.pathname.startsWith('/property-owner/requests')) return 'requests'
 		if (location.pathname === '/property-owner/message') return 'message'
+		if (location.pathname === '/property-owner/shortlet') return 'shortlet'
+		if (location.pathname.startsWith('/property-owner/sale') || location.pathname.startsWith('/property-owner/add-sale')) return 'sale'
 		if (location.pathname === '/property-owner') return 'discover'
+
+		// Fallback for unmapped routes.
+		const storedTab = sessionStorage.getItem('propertyOwnerActiveTab')
+		if (storedTab) return storedTab
 		return 'discover'
 	}
 
@@ -40,14 +55,18 @@ const PropertyOwnerNavbar = () => {
 
 	// Update active tab when pathname changes
 	useEffect(() => {
-		if (location.pathname === '/property-owner/listings') {
+		if (location.pathname.startsWith('/property-owner/listings')) {
 			sessionStorage.setItem('propertyOwnerActiveTab', 'listings')
-		} else if (location.pathname === '/my-properties') {
+		} else if (location.pathname === '/property-owner/my-properties') {
 			sessionStorage.setItem('propertyOwnerActiveTab', 'my-properties')
 		} else if (location.pathname.startsWith('/property-owner/requests')) {
 			sessionStorage.setItem('propertyOwnerActiveTab', 'requests')
 		} else if (location.pathname === '/property-owner/message') {
 			sessionStorage.setItem('propertyOwnerActiveTab', 'message')
+		} else if (location.pathname === '/property-owner/shortlet') {
+			sessionStorage.setItem('propertyOwnerActiveTab', 'shortlet')
+		} else if (location.pathname.startsWith('/property-owner/sale') || location.pathname.startsWith('/property-owner/add-sale')) {
+			sessionStorage.setItem('propertyOwnerActiveTab', 'sale')
 		} else if (location.pathname === '/property-owner') {
 			sessionStorage.setItem('propertyOwnerActiveTab', 'discover')
 		}
@@ -105,7 +124,7 @@ const PropertyOwnerNavbar = () => {
 						scrollTo(0, 0)
 						handleTabClick('my-properties')
 					}}
-					to='/my-properties'
+					to='/property-owner/my-properties'
 					className={`rounded-full px-4 py-2 transition-colors ${
 						activeTab === 'my-properties' ? 'bg-gray-200' : 'hover:bg-gray-200'
 					}`}
@@ -153,20 +172,41 @@ const PropertyOwnerNavbar = () => {
 			<div className='flex items-center gap-4 md:gap-10'>
 				<button
 					type='button'
-					onClick={() => setIsNotificationOpen(true)}
+					onClick={() => {
+						setIsNotificationOpen(true)
+						sessionStorage.setItem(NOTIFICATIONS_OPEN_KEY, '1')
+					}}
 					className='p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-700 hover:text-primary relative'
 					title='Notifications'
 					aria-label='Open notifications'
 				>
 					<Bell className='w-5 h-5' />
+					{unreadCount > 0 && (
+						<span className='absolute top-1 right-1 min-w-[16px] h-4 px-1 flex items-center justify-center text-[10px] font-semibold text-white bg-primary rounded-full'>
+							{unreadCount > 99 ? '99+' : unreadCount}
+						</span>
+					)}
 				</button>
 				<NotificationWidget
 					isOpen={isNotificationOpen}
-					onClose={() => setIsNotificationOpen(false)}
+					onClose={() => {
+						setIsNotificationOpen(false)
+						sessionStorage.removeItem(NOTIFICATIONS_OPEN_KEY)
+						fetchUnreadCount()
+					}}
 				/>
-				<button className='bg-primary text-white px-3 py-2 text-[16px] max-md:hidden hover:bg-primary/80 hover:scale-105 transition rounded-full font-medium cursor-pointer'>
+				<Link
+					to='/property-owner/sale'
+					onClick={() => {
+						scrollTo(0, 0)
+						setIsOpen(false)
+					}}
+					className={`bg-primary text-white px-3 py-2 text-[16px] max-md:hidden hover:bg-primary/80 hover:scale-105 transition rounded-full font-medium cursor-pointer ring-2 ${
+						isSaleRoute ? 'ring-primary/60' : 'ring-transparent'
+					}`}
+				>
 					Sell a property
-				</button>
+				</Link>
 				<Link
 					to='/profile'
 					onClick={() => setIsOpen(false)}
