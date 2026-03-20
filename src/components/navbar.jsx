@@ -3,6 +3,7 @@ import React, { useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import { useSelector } from 'react-redux'
+import { useLazyGetUnreadCountQuery } from '../repository/notification_repository'
 import { selectCurrentAccount } from '../redux/slices/accountSlice'
 import logo from '../assets/logo.png'
 import NotificationWidget from './notification_widget'
@@ -15,12 +16,22 @@ function getAvatarSrc(avatar) {
 	return `${DICEBEAR_ADVENTURER}?seed=${encodeURIComponent(avatar)}`
 }
 
+const NOTIFICATIONS_OPEN_KEY = 'esvora_notifications_panel_open'
+
 const Navbar = () => {
   const account = useSelector(selectCurrentAccount)
   const [isOpen, setIsOpen] = useState(false)
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false)
+  const [isNotificationOpen, setIsNotificationOpen] = useState(
+    () => sessionStorage.getItem(NOTIFICATIONS_OPEN_KEY) === '1'
+  )
+  const [fetchUnreadCount, { data: unreadCountData }] = useLazyGetUnreadCountQuery()
+  const unreadCount = unreadCountData ?? 0
   const navigate = useNavigate()
   const location = useLocation()
+
+  useEffect(() => {
+    fetchUnreadCount()
+  }, [fetchUnreadCount])
   const avatarSrc = getAvatarSrc(account?.avatar ?? account?.avatar_url ?? account?.profile_image)
   
   // Get active tab from pathname (for pages with their own nav state) or sessionStorage
@@ -163,10 +174,19 @@ const Navbar = () => {
         </Link>
         <button
           type='button'
-          onClick={() => { setIsNotificationOpen(true); setIsOpen(false) }}
-          className='md:hidden rounded-full px-4 py-2 transition-colors hover:bg-gray-200 flex items-center gap-2'
+          onClick={() => {
+            setIsNotificationOpen(true)
+            setIsOpen(false)
+            sessionStorage.setItem(NOTIFICATIONS_OPEN_KEY, '1')
+          }}
+          className='md:hidden rounded-full px-4 py-2 transition-colors hover:bg-gray-200 flex items-center gap-2 relative'
         >
           Notification
+          {unreadCount > 0 && (
+            <span className='min-w-[16px] h-4 px-1 flex items-center justify-center text-[10px] font-semibold text-white bg-primary rounded-full'>
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
         </button>
         <Link
           to="/favourites"
@@ -192,16 +212,28 @@ const Navbar = () => {
       <div className='flex items-center gap-4 md:gap-10'>
       <button
         type='button'
-        onClick={() => setIsNotificationOpen(true)}
+        onClick={() => {
+          setIsNotificationOpen(true)
+          sessionStorage.setItem(NOTIFICATIONS_OPEN_KEY, '1')
+        }}
         className='max-md:hidden p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-700 hover:text-primary relative'
         title='Notifications'
         aria-label='Open notifications'
       >
         <Bell className='w-5 h-5' />
+        {unreadCount > 0 && (
+          <span className='absolute top-1 right-1 min-w-[16px] h-4 px-1 flex items-center justify-center text-[10px] font-semibold text-white bg-primary rounded-full'>
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </span>
+        )}
       </button>
       <NotificationWidget
         isOpen={isNotificationOpen}
-        onClose={() => setIsNotificationOpen(false)}
+        onClose={() => {
+          setIsNotificationOpen(false)
+          sessionStorage.removeItem(NOTIFICATIONS_OPEN_KEY)
+          fetchUnreadCount()
+        }}
       />
       <Link
         to="/favourites"
