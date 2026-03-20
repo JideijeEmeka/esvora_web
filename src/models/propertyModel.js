@@ -11,6 +11,24 @@
  */
 
 /**
+ * @typedef {Object} PropertyReviewUser
+ * @property {string|null} id
+ * @property {string|null} fullname
+ * @property {string|null} avatar
+ */
+
+/**
+ * @typedef {Object} PropertyReview
+ * @property {string|null} id
+ * @property {number|null} rating
+ * @property {string|null} sentiment
+ * @property {string[]|null} tags
+ * @property {string|null} comment
+ * @property {string|null} created_at
+ * @property {PropertyReviewUser|null} user
+ */
+
+/**
  * @typedef {Object} PropertyLandlord
  * @property {string|null} id
  * @property {string|null} fullname
@@ -49,7 +67,7 @@
  * @property {number} view_count
  * @property {string|null} property_type
  * @property {PropertyLandlord|null} landlord
- * @property {Array} reviews
+ * @property {PropertyReview[]} reviews
  * @property {string|null} image
  * @property {string} price
  * @property {string|null} priceFormatted
