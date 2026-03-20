@@ -320,6 +320,25 @@ class WalletController {
 			setLoading?.(false)
 		}
 	}
+
+	async verifyDeposit({ reference, setLoading, onSuccess, onError }) {
+		setLoading?.(true)
+		try {
+			const res = await store.dispatch(
+				walletApi.endpoints.verifyDeposit.initiate({ reference })
+			)
+			if (res.error) {
+				onError?.(errMsg(res.error, 'Failed to verify deposit'))
+				return
+			}
+			onSuccess?.(res.data)
+			return res.data
+		} catch (err) {
+			onError?.(errMsg(err, 'Failed to verify deposit'))
+		} finally {
+			setLoading?.(false)
+		}
+	}
 }
 
 export default new WalletController()
