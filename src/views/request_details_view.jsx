@@ -13,6 +13,7 @@ const RequestDetailsView = () => {
 	const { id } = useParams()
 	const [isLoading, setIsLoading] = useState(true)
 	const [loadError, setLoadError] = useState(null)
+	const [pendingAction, setPendingAction] = useState(null)
 	const showRequestRaw = useSelector(selectShowRequest)
 	const rawMatches = showRequestRaw && String(showRequestRaw?.id ?? showRequestRaw?.uuid) === String(id)
 	const request = rawMatches ? normalizeShowRequest(showRequestRaw) : null
@@ -43,16 +44,18 @@ const RequestDetailsView = () => {
 	}
 
 	const handleDecline = () => {
+		setPendingAction('decline')
 		propertyController.declineRequest(id, {
 			onSuccess: () => navigate('/property-owner/requests'),
-			onError: () => {}
+			onError: () => setPendingAction(null)
 		})
 	}
 
 	const handleAccept = () => {
+		setPendingAction('accept')
 		propertyController.acceptRequest(id, {
 			onSuccess: () => navigate('/property-owner/requests'),
-			onError: () => {}
+			onError: () => setPendingAction(null)
 		})
 	}
 
@@ -87,28 +90,47 @@ const RequestDetailsView = () => {
 
 	const { property, from, userInfo, message, scheduleDate } = request
 	const isUrgent = userInfo.urgency === 'Urgent'
+	const requestStatus = (request?.status ?? '').toLowerCase()
+	const isApprovedRequest = requestStatus === 'accepted' || requestStatus === 'approved'
+	const isDeclining = pendingAction === 'decline'
+	const isAccepting = pendingAction === 'accept'
+	const isActionLoading = isDeclining || isAccepting
 
 	return (
 		<>
 			<PropertyOwnerNavbar />
 			<div className='pt-30 pb-10 px-6 md:px-16 lg:px-20 min-h-screen flex flex-col bg-white'>
 				<div className='max-w-5xl mx-auto w-full'>
-					{/* Action buttons - top right */}
-					<div className='flex flex-wrap items-center justify-end gap-2 mb-8'>
+					<div className='flex flex-wrap items-center justify-between gap-3 mb-8'>
 						<button
 							type='button'
-							onClick={handleDecline}
-							className='px-5 py-2.5 rounded-full text-[14px] font-semibold bg-white border-2 border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors'
+							onClick={handleBack}
+							className='text-primary font-medium hover:underline cursor-pointer'
 						>
-							Decline
+							← Back to Requests
 						</button>
-						<button
-							type='button'
-							onClick={handleAccept}
-							className='px-5 py-2.5 rounded-full text-[14px] font-semibold bg-primary text-white hover:bg-primary/90 transition-colors'
-						>
-							Accept
-						</button>
+
+						{/* Action buttons */}
+						{!isApprovedRequest && (
+							<div className='flex flex-wrap items-center gap-2'>
+								<button
+									type='button'
+									onClick={handleDecline}
+									disabled={isActionLoading}
+									className='px-5 py-2.5 rounded-full text-[14px] font-semibold bg-white border-2 border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors disabled:opacity-70 disabled:cursor-not-allowed'
+								>
+									{isDeclining ? 'Declining...' : 'Decline'}
+								</button>
+								<button
+									type='button'
+									onClick={handleAccept}
+									disabled={isActionLoading}
+									className='px-5 py-2.5 rounded-full text-[14px] font-semibold bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-70 disabled:cursor-not-allowed'
+								>
+									{isAccepting ? 'Accepting...' : 'Accept'}
+								</button>
+							</div>
+						)}
 					</div>
 
 					{/* Two columns */}
@@ -210,16 +232,6 @@ const RequestDetailsView = () => {
 						</div>
 					</div>
 
-					{/* Back link */}
-					<div className='mt-10'>
-						<button
-							type='button'
-							onClick={handleBack}
-							className='text-primary font-medium hover:underline'
-						>
-							← Back to Requests
-						</button>
-					</div>
 				</div>
 			</div>
 		</>
