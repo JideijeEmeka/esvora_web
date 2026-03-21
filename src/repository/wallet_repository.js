@@ -127,11 +127,37 @@ export const walletApi = createApi({
 				body: {
 					amount: body.amount,
 					gateway: body.gateway,
-					callback_url: body.callbackUrl
+					callback_url: body.callbackUrl ?? body.callback_url ?? ''
 				}
 			}),
 			transformResponse: (res) => {
 				const data = res?.data?.data ?? res?.data
+				return data && typeof data === 'object' ? data : null
+			}
+		}),
+		initializePayment: builder.mutation({
+			query: (body) => ({
+				url: '/api/v1/deposits/initialize',
+				method: 'POST',
+				body: {
+					amount: body.amount,
+					gateway: body.gateway,
+					callback_url: body.callbackUrl ?? body.callback_url ?? ''
+				}
+			}),
+			transformResponse: (res) => {
+				const data = res?.data?.data ?? res?.data
+				return data && typeof data === 'object' ? data : null
+			}
+		}),
+		verifyDeposit: builder.mutation({
+			query: ({ reference }) => ({
+				url: '/api/v1/deposits/verify',
+				method: 'POST',
+				body: { reference }
+			}),
+			transformResponse: (res) => {
+				const data = res?.data ?? res
 				return data && typeof data === 'object' ? data : null
 			}
 		}),
@@ -216,6 +242,8 @@ export const {
 	useUpdateWithdrawalMethodMutation,
 	useDeleteWithdrawalMethodMutation,
 	useInitializeDepositMutation,
+	useInitializePaymentMutation,
+	useVerifyDepositMutation,
 	useGetWithdrawalTransactionsQuery,
 	useLazyGetWithdrawalTransactionsQuery,
 	useGetDepositTransactionsQuery,
