@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import toast from 'react-hot-toast'
@@ -44,6 +44,7 @@ import LogoutWidget from '../components/logout_widget'
 import DeleteAccountWidget from '../components/delete_account_widget'
 import AuthController from '../controllers/auth_controller'
 import { selectCurrentAccount } from '../redux/slices/accountSlice'
+import { getToken } from '../lib/localStorage'
 
 const SIDEBAR_SECTIONS = [
 	{
@@ -88,6 +89,13 @@ const SIDEBAR_SECTION_2 = [
 const ProfileView = () => {
 	const navigate = useNavigate()
 	const account = useSelector(selectCurrentAccount)
+
+	useEffect(() => {
+		const token = getToken()
+		if (!token || !(token ?? '').trim()) {
+			navigate('/explore', { replace: true })
+		}
+	}, [navigate])
 	const [isLoggingOut, setIsLoggingOut] = useState(false)
 	const [selectedSection, setSelectedSection] = useState('account')
 	const [clickedSection, setClickedSection] = useState(false)
