@@ -5,6 +5,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import { validateEmail } from '../../lib/validation'
 import toast from 'react-hot-toast'
 import AuthController from '../../controllers/auth_controller'
+import bgImage from '../../assets/bg.png'
 
 const LoginView = () => {
   const navigate = useNavigate()
@@ -47,7 +48,7 @@ const LoginView = () => {
       <div className='w-full h-screen md:fixed max-md:items-center max-md:justify-start
         flex items-center justify-center px-6 md:px-16 lg:px-20 pt-4 pb-8 md:flex-row flex-col'>
         <div className='w-1/2 flex flex-col items-center'>
-          <img src="src/assets/bg.png" alt="login" 
+          <img src={bgImage} alt="login" 
             className='w-100 h-auto max-md:w-[400px]'/>
           <h1 className='text-[30px] font-semibold w-[440px] py-6 max-md:text-[23px] 
             max-md:w-[400px] max-md:text-center max-md:px-10'>
