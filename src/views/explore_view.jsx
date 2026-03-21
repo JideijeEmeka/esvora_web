@@ -15,6 +15,8 @@ import { selectProperties } from '../redux/slices/propertySlice'
 import agreementsController from '../controllers/agreements_controller'
 import walletController from '../controllers/wallet_controller'
 import propertyController from '../controllers/property_controller'
+import notificationController from '../controllers/notification_controller'
+import tenantController from '../controllers/tenant_controller'
 import { normalizeProperties } from '../lib/propertyUtils'
 import { getToken } from '../lib/localStorage'
 
@@ -38,6 +40,8 @@ const ExploreView = () => {
     }).catch(() => {})
     agreementsController.listAgreements({ onError: () => {} }).catch(() => {})
     walletController.getWalletBalance({ onError: () => {} }).catch(() => {})
+    notificationController.getNotifications({ onError: () => {} }).catch(() => {})
+    tenantController.listTenancies({ onError: () => {} }).catch(() => {})
   }, [])
 
   const [favorites, setFavorites] = useState(new Set())
