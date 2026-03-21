@@ -4,6 +4,7 @@ import { getToken } from '../lib/localStorage'
 
 export const propertyApi = createApi({
 	reducerPath: kPropertyEndpoints,
+	keepUnusedDataFor: 300,
 	baseQuery: fetchBaseQuery({
 		baseUrl,
 		prepareHeaders: (headers) => {
@@ -15,7 +16,9 @@ export const propertyApi = createApi({
 	endpoints: (builder) => ({
 		// Landlord
 		listLandlordRequests: builder.query({
-			query: () => ({ url: '/api/v1/landlord/requests' })
+			query: () => ({ url: '/api/v1/landlord/requests' }),
+			keepUnusedDataFor: 300,
+			refetchOnMountOrArgChange: false
 		}),
 		showRequest: builder.query({
 			query: (id) => ({ url: `/api/v1/landlord/requests/${id}` })
@@ -33,7 +36,9 @@ export const propertyApi = createApi({
 			})
 		}),
 		listLandlordProperties: builder.query({
-			query: () => ({ url: '/api/v1/landlord/properties' })
+			query: () => ({ url: '/api/v1/landlord/properties' }),
+			keepUnusedDataFor: 300,
+			refetchOnMountOrArgChange: false
 		}),
 		viewProperty: builder.query({
 			query: (uuid) => ({ url: `/api/v1/landlord/properties/${uuid}` })
@@ -98,7 +103,9 @@ export const propertyApi = createApi({
 			})
 		}),
 		getAllProperties: builder.query({
-			query: () => ({ url: '/api/v1/properties' })
+			query: () => ({ url: '/api/v1/properties' }),
+			keepUnusedDataFor: 300,
+			refetchOnMountOrArgChange: false
 		}),
 		getPropertyDetails: builder.query({
 			query: (uuid) => ({ url: `/api/v1/properties/${uuid}` })
