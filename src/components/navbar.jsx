@@ -46,7 +46,7 @@ const Navbar = () => {
     if (location.pathname === '/buy') return 'buy'
     if (location.pathname === '/rent') return 'rent'
     if (location.pathname === '/shortlet') return 'shortlet'
-    if (location.pathname === '/my-properties') return 'my-properties'
+    if (location.pathname === '/properties') return 'properties'
     if (location.pathname === '/property-owner') return 'property-owner'
     if (location.pathname === '/messages') return 'message'
     if (location.pathname === '/requests') return 'requests'
@@ -67,8 +67,8 @@ const Navbar = () => {
       sessionStorage.setItem('activeTab', 'rent')
     } else if (location.pathname === '/shortlet') {
       sessionStorage.setItem('activeTab', 'shortlet')
-    } else if (location.pathname === '/my-properties') {
-      sessionStorage.setItem('activeTab', 'my-properties')
+    } else if (location.pathname === '/properties') {
+      sessionStorage.setItem('activeTab', 'properties')
     } else if (location.pathname === '/property-owner') {
       sessionStorage.setItem('activeTab', 'property-owner')
     } else if (location.pathname === '/messages') {
@@ -164,10 +164,10 @@ const Navbar = () => {
           Requests
         </Link>
         <Link 
-          onClick={()=> {scrollTo(0,0), handleTabClick('my-properties')}} 
-          to="/my-properties" 
+          onClick={()=> {scrollTo(0,0), handleTabClick('properties')}} 
+          to="/properties" 
           className={`rounded-full px-4 py-2 transition-colors ${
-            activeTab === 'my-properties' ? 'bg-gray-200' : 'hover:bg-gray-200'
+            activeTab === 'properties' ? 'bg-gray-200' : 'hover:bg-gray-200'
           }`}
         >
           Properties
