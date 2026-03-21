@@ -5,7 +5,7 @@ import { updateAccount } from '../redux/slices/accountSlice'
 
 /**
  * Checks auth status and redirects:
- * - No token → sign-up
+ * - No token → explore
  * - Token + fullname empty/null → update-name
  * - Token + name set → explore
  * @param {(path: string, state?: object) => void} navigate - React Router navigate function
@@ -13,7 +13,7 @@ import { updateAccount } from '../redux/slices/accountSlice'
 export async function checkAuthStatus(navigate) {
 	const token = getToken()
 	if (!token) {
-		navigate('/sign-up')
+		navigate('/explore')
 		return
 	}
 	const res = await store.dispatch(authApi.endpoints.getProfile.initiate())
