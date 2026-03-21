@@ -1,5 +1,4 @@
 import React from 'react'
-import Navbar from '../../components/navbar'
 import { useNavigate } from 'react-router-dom'
 import { Check } from 'lucide-react'
 import ButtonWidget from '../../components/button'
@@ -9,9 +8,8 @@ const ResetPasswordSuccessView = () => {
 
   return (
     <>
-      <Navbar />
       <div className='w-full h-screen md:fixed max-md:items-center max-md:justify-start
-        flex items-center justify-center mt-10 px-6 lg:px-30 md:py-1 max-md:py-30 flex-col'>
+        flex items-center justify-center pt-4 pb-8 px-6 lg:px-30 flex-col'>
         <div className='w-[500px] max-md:w-full max-md:px-6'>
           <div 
             className='bg-white rounded-2xl p-10 max-md:p-8 shadow-lg relative overflow-hidden'
@@ -31,7 +29,7 @@ const ResetPasswordSuccessView = () => {
 
               {/* Description text */}
               <p className='text-[16px] text-gray-600 font-normal text-center mb-8 max-w-md'>
-                Your request has been successfully submitted. Once approved, you'll be notified
+                Your password has been reset successfully. Sign in with your new password.
               </p>
 
               {/* Continue to login button */}
