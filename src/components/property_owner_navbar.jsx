@@ -209,7 +209,7 @@ const PropertyOwnerNavbar = () => {
 				</Link>
 				<Link
 					to='/profile'
-					onClick={() => setIsOpen(false)}
+					onClick={() => { window.scrollTo(0, 0); setIsOpen(false) }}
 					className={`w-10 h-10 min-w-10 min-h-10 rounded-full overflow-hidden border-2 shrink-0 bg-gray-100 flex items-center justify-center ring-2 transition ${
 						location.pathname === '/profile'
 							? 'border-primary ring-primary/50'
