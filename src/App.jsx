@@ -137,8 +137,9 @@ const App = () => {
         <Route path="/property-owner/my-property-details/:id" element={<PropertyOwnerMyPropertyDetailsView />} />
         <Route path="/reviews" element={<ReviewsView />} />
         <Route path="/all-reviews" element={<AllPropertyReviewsView />} />
+        <Route path="/my-properties" element={<Navigate to="/properties" replace />} />
         <Route
-          path="/my-properties"
+          path="/properties"
           element={
             account?.landlord_dashboard ? (
               <Navigate to="/property-owner/my-properties" replace />
