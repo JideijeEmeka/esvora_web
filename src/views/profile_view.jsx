@@ -496,7 +496,7 @@ const ProfileView = () => {
 								<button
 									key={item.id}
 									type='button'
-									onClick={() => {setSelectedSection(item.id), setClickedSection(true)}}
+									onClick={() => { window.scrollTo(0, 0); setSelectedSection(item.id); setClickedSection(true) }}
 									className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-[16px] font-medium transition-colors ${
 										isSelected
 											? 'bg-gray-100 text-gray-900'
@@ -518,7 +518,7 @@ const ProfileView = () => {
 								<button
 									key={item.id}
 									type='button'
-									onClick={() => { setSelectedSection(item.id); setClickedSection(true) }}
+									onClick={() => { window.scrollTo(0, 0); setSelectedSection(item.id); setClickedSection(true) }}
 									className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-[16px] font-medium transition-colors ${
 										isSelected
 											? 'bg-gray-100 text-gray-900'
