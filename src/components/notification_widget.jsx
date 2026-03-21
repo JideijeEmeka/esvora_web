@@ -110,7 +110,7 @@ const NotificationWidget = ({ isOpen, onClose }) => {
 				aria-hidden='true'
 			/>
 			<div
-				className='fixed top-35 right-20 z-[51] w-full max-w-[420px] max-h-[85vh] bg-white shadow-2xl rounded-2xl overflow-hidden flex flex-col'
+				className='fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[51] w-full max-w-[420px] max-h-[85vh] bg-white shadow-2xl rounded-2xl overflow-hidden flex flex-col'
 				onClick={(e) => e.stopPropagation()}
 			>
 				<div className='shrink-0 px-6 py-4 border-b border-gray-100 flex items-center justify-between'>
