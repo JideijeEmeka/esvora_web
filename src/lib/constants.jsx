@@ -48,6 +48,13 @@ export const kToken = 'auth_token'
 export const kSupportWhatsAppNumber = '2348084794951'
 export const kSupportPhoneNumber = '+2348084794951'
 
+/** Support ticket email (Tawk.to) */
+export const kTicketEmail = 'tickets@esvora.p.tawk.email'
+
+/** Rate app store links (update with actual IDs when published) */
+export const kPlaystoreUrl = 'https://play.google.com/store/apps/details?id=com.example.esvora'
+export const kAppStoreUrl = 'https://apps.apple.com/us/app/esvora/id0000000000'
+
 /** Deposit gateway values */
 export const kPayStack = 'paystack'
 export const kFlutterWave = 'flutterwave'
