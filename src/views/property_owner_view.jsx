@@ -126,8 +126,9 @@ const PropertyOwnerCard = ({ property, onViewDetails, onEdit }) => {
 const PropertyOwnerView = () => {
 	const navigate = useNavigate()
 	const propertiesRef = useRef(null)
-	const [isLoading, setIsLoading] = useState(true)
 	const landlordPropertiesRaw = useSelector(selectLandlordProperties)
+	const hasCachedData = Array.isArray(landlordPropertiesRaw) && landlordPropertiesRaw.length > 0
+	const [isLoading, setIsLoading] = useState(!hasCachedData)
 	const landlordProperties = normalizeProperties(landlordPropertiesRaw) ?? []
 	const displayProperties = landlordProperties.length > 0
 		? landlordProperties.map((p) => ({ ...p, status: toStatusLabel(p) }))
@@ -144,7 +145,7 @@ const PropertyOwnerView = () => {
 
 	const handleViewDetails = (propertyId) => {
 		sessionStorage.setItem('activeTab', 'property-owner')
-		navigate(`/property-details/${propertyId}`)
+		navigate(`/property-details/${propertyId}`, { state: { fromLandlordDashboard: true } })
 	}
 
 	const handleEditListing = (propertyId) => {
@@ -157,8 +158,9 @@ const PropertyOwnerView = () => {
 	}, [])
 
 	useEffect(() => {
-		setIsLoading(true)
+		if (!hasCachedData) setIsLoading(true)
 		propertyController.listLandlordProperties({
+			forceRefetch: false,
 			onSuccess: () => setIsLoading(false),
 			onError: () => setIsLoading(false)
 		})
@@ -273,7 +275,7 @@ const PropertyOwnerView = () => {
 							<div className='mt-4'>
 								<button
 									type='button'
-									onClick={() => navigate('/my-properties')}
+									onClick={() => navigate('/property-owner/my-properties')}
 									className='text-[14px] font-medium text-primary hover:underline'
 								>
 									See all
