@@ -38,6 +38,7 @@ import ScheduleInspectionWidget from '../components/schedule_inspection_widget'
 import ScheduleInspectionSubmittedWidget from '../components/schedule_inspection_submitted_widget'
 import toast from 'react-hot-toast'
 import SendRequestWidget from '../components/send_request_widget'
+import { getToken } from '../lib/localStorage'
 import RequestSubmittedWidget from '../components/request_submitted_widget'
 import LandlordDetailsWidget from '../components/landlord_details_widget'
 import Loader from '../components/loader'
@@ -61,6 +62,7 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
   const navigate = useNavigate()
   const location = useLocation()
   const { id } = useParams()
+  const isLoggedIn = !!((getToken() ?? '').trim())
   const apiDetails = useSelector(selectPropertyDetails)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
@@ -299,7 +301,7 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
         <div className='pt-20 pb-10 px-6 md:px-16 lg:px-20'>
           <button
             type='button'
-            onClick={() => navigate(-1)}
+            onClick={() => (onlyRateProperty ? navigate(-1) : navigate('/explore'))}
             className='flex items-center gap-2 text-[14px] font-medium text-gray-600 hover:text-gray-900 mb-4 transition-colors'
           >
             <ChevronLeft className='w-5 h-5' />
@@ -322,7 +324,7 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
           <p className='text-gray-600'>{loadError ?? 'Property not found'}</p>
           <button
             type='button'
-            onClick={() => navigate(-1)}
+            onClick={() => (onlyRateProperty ? navigate(-1) : navigate('/explore'))}
             className='text-primary font-medium hover:underline'
           >
             Go back
@@ -370,10 +372,10 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
         onClose={() => setIsRequestSubmittedOpen(false)}
       />
       <div className='pt-30 pb-10 px-6 md:px-16 lg:px-20'>
-        {/* Back button - always use history to return to where user left off */}
+        {/* Back button: my-property-details uses history; property-details goes to explore */}
         <button
           type='button'
-          onClick={() => navigate(-1)}
+          onClick={() => (onlyRateProperty ? navigate(-1) : navigate('/explore'))}
           className='flex items-center gap-2 text-[14px] font-medium text-gray-600 hover:text-gray-900 mb-4 transition-colors'
         >
           <ChevronLeft className='w-5 h-5' />
@@ -542,9 +544,9 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                       </div>
                     </div>
                     <Divider width='full' />
-                    {/* Map */}
+                    {/* Map - commented out */}
+                    {/* <LocationWidget property={property} /> */}
                     <div className='mt-8'>
-                      <LocationWidget property={property} />
                       <PaymentWidget paymentInfo={property.paymentInfo} />
                       <div className='py-8'>
                         <Divider width='full' />
@@ -608,10 +610,10 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                 </>
               )}
 
-              {/* Location Tab */}
-              {activeTab === 'location' && (
+              {/* Location Tab - map commented out */}
+              {/* {activeTab === 'location' && (
                 <LocationWidget property={property} />
-              )}
+              )} */}
 
               {/* Payment Info Tab */}
               {activeTab === 'payment' && (
@@ -826,6 +828,10 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                       </div>
                     )
                   }
+                  const goToLogin = () => {
+                    window.scrollTo(0, 0)
+                    navigate('/login', { state: { from: location.pathname } })
+                  }
                   const contactOwnerButton = (
                     <button
                       key='contact'
@@ -853,19 +859,42 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                       Contact owner
                     </button>
                   )
+                  const loginToContactButton = (
+                    <button
+                      key='contact'
+                      type='button'
+                      onClick={goToLogin}
+                      className='w-full border-2 border-gray-300 text-gray-700 rounded-full px-6 py-3 hover:bg-primary/5 transition-colors font-medium text-[16px]'
+                    >
+                      Log in to contact owner
+                    </button>
+                  )
+                  const loginToSendRequestButton = (
+                    <button
+                      type='button'
+                      onClick={goToLogin}
+                      className='w-full bg-primary text-white px-6 py-3 rounded-full hover:bg-primary/90 transition-colors font-medium text-[16px]'
+                    >
+                      Log in to send request
+                    </button>
+                  )
                   if (isPending) {
-                    return contactOwnerButton
+                    return isLoggedIn ? contactOwnerButton : loginToContactButton
                   }
                   return (
                     <>
-                      <button
-                        type='button'
-                        onClick={() => setIsSendRequestOpen(true)}
-                        className='w-full bg-primary text-white px-6 py-3 rounded-full hover:bg-primary/90 transition-colors font-medium text-[16px]'
-                      >
-                        Send request
-                      </button>
-                      {contactOwnerButton}
+                      {isLoggedIn ? (
+                        <button
+                          type='button'
+                          onClick={() => setIsSendRequestOpen(true)}
+                          className='w-full bg-primary text-white px-6 py-3 rounded-full hover:bg-primary/90 transition-colors font-medium text-[16px]'
+                        >
+                          Send request
+                        </button>
+                      ) : (
+                        loginToSendRequestButton
+                      )}
+                      {isLoggedIn ? contactOwnerButton : loginToContactButton}
                     </>
                   )
                 })()}
