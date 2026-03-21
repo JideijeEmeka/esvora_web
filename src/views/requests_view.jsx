@@ -5,7 +5,7 @@ import PropertyOwnerNavbar from '../components/property_owner_navbar'
 import Loader from '../components/loader'
 import Footer from '../components/footer'
 import ManageScheduleWidget from '../components/manage_schedule_widget'
-import { Settings, ChevronRight } from 'lucide-react'
+import { Settings, ChevronRight, RefreshCw } from 'lucide-react'
 
 import propertyController from '../controllers/property_controller'
 import { selectLandlordRequests } from '../redux/slices/propertySlice'
@@ -19,6 +19,8 @@ const RequestsView = () => {
 	const [activeFilter, setActiveFilter] = useState('New')
 	const [isManageScheduleOpen, setIsManageScheduleOpen] = useState(false)
 	const [isLoading, setIsLoading] = useState(true)
+	const [isRefreshing, setIsRefreshing] = useState(false)
+	const [pendingAction, setPendingAction] = useState({ requestId: null, type: null })
 	const landlordRequestsRaw = useSelector(selectLandlordRequests)
 	const allRequests = (landlordRequestsRaw ?? []).map(normalizeLandlordRequest).filter(Boolean)
 	const statusMap = {
@@ -44,18 +46,37 @@ const RequestsView = () => {
 		})
 	}, [])
 
+	const handleRefreshRequests = () => {
+		setIsRefreshing(true)
+		propertyController.listLandlordRequests({
+			forceRefetch: true,
+			onSuccess: () => setIsRefreshing(false),
+			onError: () => setIsRefreshing(false)
+		})
+	}
+
 	const handleDecline = (requestId) => {
+		setPendingAction({ requestId, type: 'decline' })
 		propertyController.declineRequest(requestId, {
 			onSuccess: () => {
 				propertyController.listLandlordRequests({ forceRefetch: true })
+				setPendingAction({ requestId: null, type: null })
+			},
+			onError: () => {
+				setPendingAction({ requestId: null, type: null })
 			}
 		})
 	}
 
 	const handleAccept = (requestId) => {
+		setPendingAction({ requestId, type: 'accept' })
 		propertyController.acceptRequest(requestId, {
 			onSuccess: () => {
 				propertyController.listLandlordRequests({ forceRefetch: true })
+				setPendingAction({ requestId: null, type: null })
+			},
+			onError: () => {
+				setPendingAction({ requestId: null, type: null })
 			}
 		})
 	}
@@ -84,14 +105,16 @@ const RequestsView = () => {
 						<h1 className='text-[28px] md:text-[32px] font-bold text-gray-900'>
 							Requests
 						</h1>
-						<button
-							type='button'
-							onClick={() => setIsManageScheduleOpen(true)}
-							className='flex items-center gap-2 text-gray-500 hover:text-gray-700 text-[14px] font-medium transition-colors'
-						>
-							<Settings className='w-4 h-4' />
-							Manage
-						</button>
+						<div className='flex items-center gap-3'>
+							<button
+								type='button'
+								onClick={() => setIsManageScheduleOpen(true)}
+								className='flex items-center gap-2 text-gray-500 hover:text-gray-700 text-[14px] font-medium transition-colors'
+							>
+								<Settings className='w-4 h-4' />
+								Manage
+							</button>
+						</div>
 					</div>
 
 					<ManageScheduleWidget
@@ -103,7 +126,7 @@ const RequestsView = () => {
 					/>
 
 					{/* Status filters */}
-					<div className='flex flex-wrap gap-2 mb-8'>
+					<div className='flex flex-wrap items-center gap-2 mb-8'>
 						{FILTERS.map((filter) => (
 							<button
 								key={filter}
@@ -118,6 +141,16 @@ const RequestsView = () => {
 								{filter}
 							</button>
 						))}
+						<button
+							type='button'
+							onClick={handleRefreshRequests}
+							disabled={isLoading || isRefreshing}
+							aria-label='Refresh requests'
+							title='Refresh requests'
+							className='p-2 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors disabled:opacity-60 disabled:cursor-not-allowed'
+						>
+							<RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+						</button>
 					</div>
 
 					{/* Request list */}
@@ -128,7 +161,13 @@ const RequestsView = () => {
 							</div>
 						) : requests.length === 0 ? (
 							<p className='text-gray-600 py-8'>No requests yet.</p>
-						) : requests.map((request) => (
+						) : requests.map((request) => {
+							const requestStatus = (request?.status ?? request?.raw?.status ?? '').toLowerCase()
+							const isApprovedRequest = requestStatus === 'accepted' || requestStatus === 'approved'
+							const isDeclining = pendingAction.requestId === request.id && pendingAction.type === 'decline'
+							const isAccepting = pendingAction.requestId === request.id && pendingAction.type === 'accept'
+							const isActionLoading = isDeclining || isAccepting
+							return (
 							<div
 								key={request.id}
 								role='button'
@@ -175,7 +214,7 @@ const RequestsView = () => {
 												: ` ${request.suffix}`}
 										</p>
 
-										{request.type === 'schedule' && activeFilter !== 'Approved' && (
+										{request.type === 'schedule' && !isApprovedRequest && (
 											<>
 												<div className='flex flex-wrap gap-2 mb-3'>
 													<button
@@ -184,9 +223,10 @@ const RequestsView = () => {
 															e.stopPropagation()
 															handleDecline(request.id)
 														}}
-														className='px-4 py-2 rounded-full text-[14px] font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors'
+														disabled={isActionLoading}
+														className='px-4 py-2 rounded-full text-[14px] font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors disabled:opacity-70 disabled:cursor-not-allowed'
 													>
-														Decline
+														{isDeclining ? 'Declining...' : 'Decline'}
 													</button>
 													<button
 														type='button'
@@ -194,9 +234,10 @@ const RequestsView = () => {
 															e.stopPropagation()
 															handleAccept(request.id)
 														}}
-														className='px-4 py-2 rounded-full text-[14px] font-medium bg-primary text-white hover:bg-primary/90 transition-colors'
+														disabled={isActionLoading}
+														className='px-4 py-2 rounded-full text-[14px] font-medium bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-70 disabled:cursor-not-allowed'
 													>
-														Accept
+														{isAccepting ? 'Accepting...' : 'Accept'}
 													</button>
 												</div>
 												{request.participants && (
@@ -218,7 +259,7 @@ const RequestsView = () => {
 											</>
 										)}
 
-										{request.type === 'schedule' && activeFilter === 'Approved' && (
+										{request.type === 'schedule' && isApprovedRequest && (
 											<span className='inline-block px-4 py-2 rounded-full text-[14px] font-medium bg-gray-100 text-gray-700'>
 												{request.propertyType === 'Sale' ? 'Sold out' : 'Checked in'}
 											</span>
@@ -239,7 +280,8 @@ const RequestsView = () => {
 									</div>
 								</div>
 							</div>
-						))}
+							)
+						})}
 					</div>
 				</div>
 			</div>
