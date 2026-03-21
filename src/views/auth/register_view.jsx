@@ -8,6 +8,8 @@ import ButtonWidget from '../../components/button'
 import AuthController from '../../controllers/auth_controller'
 import { validateEmail, validateCountry, validatePhone } from '../../lib/validation'
 import toast from 'react-hot-toast'
+import bgImage from '../../assets/bg.png'
+import googleImage from '../../assets/google.png'
 
 const RegisterView = () => {
 	const [countries, setCountries] = useState(Country.getAllCountries())
@@ -60,7 +62,7 @@ const RegisterView = () => {
         <div className='w-full h-screen md:fixed max-md:items-center max-md:justify-start
           flex items-center justify-center px-6 md:px-16 lg:px-20 pt-4 pb-8 md:flex-row flex-col'>
             <div className='w-1/2 flex flex-col items-center'>
-             <img src="src/assets/bg.png" alt="register" 
+             <img src={bgImage} alt="register" 
                 className='w-100 h-auto max-md:w-[400px]'/>
              <h1 className='text-[30px] font-semibold w-[440px] py-6 max-md:text-[23px] 
                   max-md:w-[400px] max-md:text-center max-md:px-10'>
@@ -74,7 +76,7 @@ const RegisterView = () => {
                 max-md:w-80 max-md:mx-auto max-md:mt-2 max-md:mb-6 max-md:text-[14px] text-gray-700
                 flex items-center justify-center gap-2 hover:bg-primary/80 hover:scale-105 border border-gray-300
                 transition rounded-full w-90 font-medium hover:text-white cursor-pointer'>
-                <img src="src/assets/google.png" alt="google" className='w-4 h-4' />
+                <img src={googleImage} alt="google" className='w-4 h-4' />
                 Continue with your Google account</button>
                 <form className='w-90 flex flex-col max-md:px-10 mb-3' onSubmit={(e) => { e.preventDefault(); handleSignup(); }}>
                     <label htmlFor="email" className='text-[16px] font-medium'>Email address</label>
