@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import ButtonWidget from '../../components/button'
 import { Eye, EyeOff } from 'lucide-react'
 import { validateEmail } from '../../lib/validation'
@@ -9,6 +9,8 @@ import bgImage from '../../assets/bg.png'
 
 const LoginView = () => {
   const navigate = useNavigate()
+  const location = useLocation()
+  const returnTo = location.state?.from ?? location.state?.returnTo ?? '/explore'
   const authController = new AuthController()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -35,6 +37,7 @@ const LoginView = () => {
     authController.login(email.trim(), passwordTrimmed, {
       setLoading: setIsLoading,
       navigate,
+      returnTo,
       onError: (message) => {
         toast.error(message)
         setPassword('')
