@@ -574,7 +574,7 @@ const ExploreView = () => {
             <div className='mt-2 mr-2 flex justify-end'>
               <button
                 type='button'
-                onClick={() => navigate('/my-properties')}
+                onClick={() => navigate('/properties')}
                 className='text-[14px] font-medium text-primary hover:underline'
               >
                 See all
