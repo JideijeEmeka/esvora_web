@@ -43,6 +43,30 @@ export const validatePhone = (phone) => {
 }
 
 /**
+ * @param {string} value
+ * @param {string} fieldName
+ * @returns {{ valid: boolean, message?: string }}
+ */
+export const validateRequired = (value, fieldName = 'Field') => {
+	const trimmed = (value ?? '').trim()
+	if (!trimmed) return { valid: false, message: `${fieldName} cannot be empty` }
+	return { valid: true }
+}
+
+/**
+ * @param {string} value
+ * @param {number} minLength
+ * @param {string} fieldName
+ * @returns {{ valid: boolean, message?: string }}
+ */
+export const validateMinLength = (value, minLength, fieldName = 'Field') => {
+	const trimmed = (value ?? '').trim()
+	if (!trimmed) return { valid: false, message: `${fieldName} cannot be empty` }
+	if (trimmed.length < minLength) return { valid: false, message: `${fieldName} must be at least ${minLength} characters` }
+	return { valid: true }
+}
+
+/**
  * @param {string} otp - 4-digit code
  * @returns {{ valid: boolean, message?: string }}
  */
