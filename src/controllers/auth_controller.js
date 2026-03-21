@@ -175,7 +175,7 @@ class AuthController {
     }
 
     async login(email, password, callbacks = {}) {
-        const { setLoading, navigate, onError } = callbacks
+        const { setLoading, navigate, onError, returnTo } = callbacks
         setLoading?.(true)
 
         try {
@@ -204,7 +204,7 @@ class AuthController {
                 const user = profileRes.data?.data?.user ?? profileRes.data?.user
                 if (user) store.dispatch(updateAccount(user))
             }
-            navigate?.('/explore')
+            navigate?.(returnTo ?? '/explore')
             return account ?? data
         } catch (err) {
             console.log('Error...', err)
