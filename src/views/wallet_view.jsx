@@ -120,6 +120,7 @@ const WalletView = ({
 	const [methodToEdit, setMethodToEdit] = useState(null)
 	const [withdrawPreview, setWithdrawPreview] = useState(null)
 	const [showWithdrawSuccess, setShowWithdrawSuccess] = useState(false)
+	const [showDepositSuccess, setShowDepositSuccess] = useState(false)
 	const [showAllTransactions, setShowAllTransactions] = useState(false)
 
 	const handleRefreshBalance = () => {
@@ -151,8 +152,41 @@ const WalletView = ({
 		setShowAddMoney(true)
 	}
 
-	const handleDepositComplete = () => {
-		setDepositAmount(null)
+	const handleDepositComplete = ({ reference } = {}) => {
+		const finalizeSuccess = () => {
+			setDepositAmount(null)
+			setShowDepositSuccess(true)
+		}
+		if (!reference) {
+			finalizeSuccess()
+			return
+		}
+		walletController.verifyDeposit({
+			reference,
+			onSuccess: (res) => {
+				// verify payload may be either { success, message, data } or data directly
+				const verifyData =
+					res?.data && typeof res?.data === 'object' && (res?.data?.payment_transaction || res?.data?.status)
+						? res.data
+						: (res ?? {})
+				const paymentStatus = (verifyData?.payment_transaction?.status ?? '').toLowerCase()
+				const depositStatus = (verifyData?.status ?? '').toLowerCase()
+				const isSuccess = ['success', 'successful', 'completed', 'paid'].includes(paymentStatus)
+					|| ['completed', 'success', 'successful'].includes(depositStatus)
+				if (isSuccess) {
+					finalizeSuccess()
+					return
+				}
+				setDepositAmount(null)
+			},
+			onError: () => {
+				setDepositAmount(null)
+			}
+		})
+	}
+
+	const handleDepositSuccessClose = () => {
+		setShowDepositSuccess(false)
 		walletController.getWalletBalance({ forceRefetch: true, onError: () => {} })
 		walletController.getRecentTransactions({ forceRefetch: true, onError: () => {} })
 	}
@@ -354,38 +388,38 @@ const WalletView = ({
 			</div>
 
 			{/* Add money & Withdraw cards */}
-			<div className='flex flex-wrap gap-4 mb-8'>
+			<div className='flex flex-row gap-3 md:gap-4 mb-8'>
 				<button
 					type='button'
 					onClick={handleAddMoneyClick}
-					className='flex flex-col items-center gap-3 p-6 rounded-2xl border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors group min-w-[160px] max-w-[200px]'
+					className='flex flex-1 md:flex-initial flex-col items-center justify-center gap-2 md:gap-3 p-4 md:p-6 rounded-xl md:rounded-2xl border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors group min-w-0 md:min-w-[160px] md:max-w-[200px]'
 				>
 					<div className='relative shrink-0'>
-						<div className='w-14 h-14 rounded-xl bg-gray-200 flex items-center justify-center group-hover:bg-gray-300 transition-colors'>
-							<Building2 className='w-7 h-7 text-gray-700' />
+						<div className='w-10 h-10 md:w-14 md:h-14 rounded-lg md:rounded-xl bg-gray-200 flex items-center justify-center group-hover:bg-gray-300 transition-colors'>
+							<Building2 className='w-5 h-5 md:w-7 md:h-7 text-gray-700' />
 						</div>
-						<div className='absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-primary flex items-center justify-center'>
-							<Plus className='w-3.5 h-3.5 text-white' strokeWidth={2.5} />
+						<div className='absolute -bottom-0.5 -right-0.5 md:-bottom-1 md:-right-1 w-5 h-5 md:w-6 md:h-6 rounded-full bg-primary flex items-center justify-center'>
+							<Plus className='w-3 h-3 md:w-3.5 md:h-3.5 text-white' strokeWidth={2.5} />
 						</div>
 					</div>
-					<span className='text-[16px] font-medium text-gray-900'>
+					<span className='text-[14px] md:text-[16px] font-medium text-gray-900'>
 						Add money
 					</span>
 				</button>
 				<button
 					type='button'
 					onClick={handleWithdrawClick}
-					className='flex flex-col items-center gap-3 p-6 rounded-2xl border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors group min-w-[160px] max-w-[200px]'
+					className='flex flex-1 md:flex-initial flex-col items-center justify-center gap-2 md:gap-3 p-4 md:p-6 rounded-xl md:rounded-2xl border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors group min-w-0 md:min-w-[160px] md:max-w-[200px]'
 				>
 					<div className='relative shrink-0'>
-						<div className='w-14 h-14 rounded-xl bg-gray-200 flex items-center justify-center group-hover:bg-gray-300 transition-colors'>
-							<Building2 className='w-7 h-7 text-gray-700' />
+						<div className='w-10 h-10 md:w-14 md:h-14 rounded-lg md:rounded-xl bg-gray-200 flex items-center justify-center group-hover:bg-gray-300 transition-colors'>
+							<Building2 className='w-5 h-5 md:w-7 md:h-7 text-gray-700' />
 						</div>
-						<div className='absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center'>
-							<Minus className='w-3.5 h-3.5 text-white' strokeWidth={2.5} />
+						<div className='absolute -bottom-0.5 -right-0.5 md:-bottom-1 md:-right-1 w-5 h-5 md:w-6 md:h-6 rounded-full bg-gray-700 flex items-center justify-center'>
+							<Minus className='w-3 h-3 md:w-3.5 md:h-3.5 text-white' strokeWidth={2.5} />
 						</div>
 					</div>
-					<span className='text-[16px] font-medium text-gray-900'>
+					<span className='text-[14px] md:text-[16px] font-medium text-gray-900'>
 						Withdraw
 					</span>
 				</button>
@@ -497,6 +531,15 @@ const WalletView = ({
 				onClose={handleWithdrawSuccessClose}
 				title='Request successful'
 				subtitle="You have successfully requested for a withdrawal. your account will be credited shortly"
+				buttonText='Continue to wallet'
+			/>
+
+			{/* Deposit success */}
+			<SuccessWidget
+				isOpen={showDepositSuccess}
+				onClose={handleDepositSuccessClose}
+				title='Deposit successful'
+				subtitle='You have successfully funded your wallet.'
 				buttonText='Continue to wallet'
 			/>
 		</div>
