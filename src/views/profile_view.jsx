@@ -30,6 +30,9 @@ import PrivacyAndSecurityView, { ManageAppView } from './privacy_and_security_vi
 import SetLocationView from './set_location_view'
 import ChangePasswordView from './change_password_view'
 import HelpAndSupportView from './help_and_support_view'
+import CreateTicketView from './create_ticket_view'
+import RatingBarDialog from '../components/rating_bar_dialog'
+import TermsAndConditionsView from './terms_and_conditions_view'
 import PaymentsView from './payments_view'
 import PaymentMethodsView from './payment_methods_view'
 import PaymentMethodDetailsView from './payment_method_details_view'
@@ -96,6 +99,8 @@ const ProfileView = () => {
 	const [paymentsSubView, setPaymentsSubView] = useState(null)
 	const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null)
 	const [agreementsSubView, setAgreementsSubView] = useState(null)
+	const [helpSupportSubView, setHelpSupportSubView] = useState(null)
+	const [isRateDialogOpen, setIsRateDialogOpen] = useState(false)
 	const [isLoadingLocation, setIsLoadingLocation] = useState(false)
 	const [isLoadingPhone, setIsLoadingPhone] = useState(false)
 	const [isDeletingAccount, setIsDeletingAccount] = useState(false)
@@ -441,19 +446,31 @@ const ProfileView = () => {
 					/>
 				)
 			case 'help_support':
+				if (helpSupportSubView === 'create_ticket') {
+					return (
+						<CreateTicketView
+							onBack={() => setHelpSupportSubView(null)}
+						/>
+					)
+				}
 				return (
 					<HelpAndSupportView
 						onBack={() => {
 							setSelectedSection('account')
 							setClickedSection(false)
 						}}
+						onCreateTicketClick={() => setHelpSupportSubView('create_ticket')}
+						onRateExperienceClick={() => setIsRateDialogOpen(true)}
 					/>
 				)
 			case 'terms':
 				return (
-					<div className='bg-white rounded-2xl border border-gray-200 p-8 text-center text-gray-500'>
-						{selectedSection.replace(/_/g, ' ')} content coming soon.
-					</div>
+					<TermsAndConditionsView
+						onBack={() => {
+							setSelectedSection('account')
+							setClickedSection(false)
+						}}
+					/>
 				)
 			default:
 				return <AccountView clickedSection={clickedSection} 
@@ -462,6 +479,7 @@ const ProfileView = () => {
 	}
 
 	return (
+		<>
 		<div className='pt-30 pb-10 px-6 md:px-16 lg:px-20 min-h-screen'>
 			<div className='flex flex-col lg:flex-row gap-8 max-w-6xl mx-auto'>
 				{/* Left sidebar */}
@@ -577,6 +595,10 @@ const ProfileView = () => {
 				</main>
 			</div>
 		</div>
+		{isRateDialogOpen && (
+			<RatingBarDialog onClose={() => setIsRateDialogOpen(false)} />
+		)}
+		</>
 	)
 }
 
