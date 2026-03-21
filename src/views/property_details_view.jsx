@@ -36,7 +36,6 @@ import SharePropertyWidget from '../components/share_property_widget'
 import AddToFavoriteWidget from '../components/add_to_favorite_widget'
 import ScheduleInspectionWidget from '../components/schedule_inspection_widget'
 import ScheduleInspectionSubmittedWidget from '../components/schedule_inspection_submitted_widget'
-import ReviewsView from './reviews_view'
 import toast from 'react-hot-toast'
 import SendRequestWidget from '../components/send_request_widget'
 import RequestSubmittedWidget from '../components/request_submitted_widget'
@@ -371,10 +370,10 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
         onClose={() => setIsRequestSubmittedOpen(false)}
       />
       <div className='pt-30 pb-10 px-6 md:px-16 lg:px-20'>
-        {/* Back button */}
+        {/* Back button - always use history to return to where user left off */}
         <button
           type='button'
-          onClick={() => (onlyRateProperty ? navigate('/my-properties') : navigate(-1))}
+          onClick={() => navigate(-1)}
           className='flex items-center gap-2 text-[14px] font-medium text-gray-600 hover:text-gray-900 mb-4 transition-colors'
         >
           <ChevronLeft className='w-5 h-5' />
@@ -554,10 +553,11 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                       <div className='py-8'>
                         <Divider width='full' />
                       </div>
-                      <ReviewsWidget 
+                      <ReviewsWidget
                         rating={property.rating}
                         reviewCount={property.reviewCount}
                         reviews={property.reviews}
+                        propertyTitle={property.title ?? property.property_type ?? 'Property'}
                       />
                     </div>
                   </div>
@@ -625,7 +625,12 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
 
               {/* Reviews Tab */}
               {activeTab === 'review' && (
-                <ReviewsView />
+                <ReviewsWidget
+                  rating={property.rating}
+                  reviewCount={property.reviewCount}
+                  reviews={property.reviews}
+                  propertyTitle={property.title ?? property.property_type ?? 'Property'}
+                />
               )}
             </div>
 
@@ -766,7 +771,10 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                 {onlyRateProperty ? (
                   <button
                     type='button'
-                    onClick={() => navigate(`/rate-property/${id}`)}
+                    onClick={() => {
+                      window.scrollTo(0, 0)
+                      navigate(`/rate-property/${id}`)
+                    }}
                     className='w-full bg-primary text-white px-6 py-3 rounded-full hover:bg-primary/90 transition-colors font-medium text-[16px]'
                   >
                     Rate property
@@ -800,7 +808,10 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                       <div className='flex flex-col md:flex-row gap-3'>
                         <button
                           type='button'
-                          onClick={() => navigate(`/rate-property/${id}`)}
+                          onClick={() => {
+                            window.scrollTo(0, 0)
+                            navigate(`/rate-property/${id}`)
+                          }}
                           className='flex-1 border-2 border-gray-300 text-gray-700 rounded-full px-6 py-3 hover:bg-gray-50 transition-colors font-medium text-[16px]'
                         >
                           Rate property
