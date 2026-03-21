@@ -2,6 +2,7 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Check } from 'lucide-react'
 import ButtonWidget from '../../components/button'
+import confettiImage from '../../assets/confetti.png'
 
 const ResetPasswordSuccessView = () => {
   const navigate = useNavigate()
@@ -14,7 +15,7 @@ const ResetPasswordSuccessView = () => {
           <div 
             className='bg-white rounded-2xl p-10 max-md:p-8 shadow-lg relative overflow-hidden'
           >
-            <img src="src/assets/confetti.png" alt="confetti" 
+            <img src={confettiImage} alt="confetti" 
                 className='absolute inset-0 z-0 w-full h-[100px] object-fill' />
             <div className='flex flex-col items-center relative z-10'>
               {/* Success Icon - Large purple circle with checkmark */}
