@@ -1,36 +1,74 @@
 import React from 'react'
-import { Mail, Phone, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Mail, Phone, ChevronLeft, ChevronRight, MessageCircle, Star } from 'lucide-react'
+import { kSupportWhatsAppNumber, kSupportPhoneNumber } from '../lib/constants'
 
 const SUPPORT_OPTIONS = [
 	{
+		id: 'live_chat',
+		label: 'Live chat',
+		description: 'Chat with our support team',
+		icon: MessageCircle
+	},
+	{
 		id: 'create_ticket',
 		label: 'Create a ticket',
-		description: 'Send your request to an official mail',
+		description: 'Send your request to our official mail',
 		icon: Mail
 	},
 	{
-		id: 'talk_to_representative',
-		label: 'Talk to a representative',
-		description: 'Communicate directly with our agent',
-		icon: Mail
+		id: 'whatsapp',
+		label: 'WhatsApp',
+		description: 'Send us a message on WhatsApp',
+		icon: MessageCircle
+	},
+	{
+		id: 'phone',
+		label: 'Phone',
+		description: 'Call to speak to one of our agents',
+		icon: Phone
 	},
 	{
 		id: 'rate_experience',
 		label: 'Rate your experience',
 		description: 'Give us a review of our app',
-		icon: Phone
+		icon: Star
 	}
 ]
 
 const HelpAndSupportView = ({
 	onBack,
+	onLiveChatClick,
 	onCreateTicketClick,
-	onTalkToRepresentativeClick,
+	onWhatsAppClick,
+	onPhoneClick,
 	onRateExperienceClick
 }) => {
 	const handleOptionClick = (id) => {
+		if (id === 'live_chat') {
+			if (onLiveChatClick) {
+				onLiveChatClick()
+			} else if (typeof window !== 'undefined' && window.Tawk_API) {
+				window.Tawk_API.start?.({ showWidget: true })
+				setTimeout(() => window.Tawk_API?.maximize?.(), 100)
+			}
+		}
 		if (id === 'create_ticket' && onCreateTicketClick) onCreateTicketClick()
-		if (id === 'talk_to_representative' && onTalkToRepresentativeClick) onTalkToRepresentativeClick()
+		if (id === 'whatsapp') {
+			if (onWhatsAppClick) {
+				onWhatsAppClick()
+			} else {
+				const num = kSupportWhatsAppNumber.replace(/\D/g, '')
+				window.open(`https://wa.me/${num}`, '_blank')
+			}
+		}
+		if (id === 'phone') {
+			if (onPhoneClick) {
+				onPhoneClick()
+			} else {
+				const num = kSupportPhoneNumber.replace(/\s/g, '')
+				window.open(`tel:${num}`, '_self')
+			}
+		}
 		if (id === 'rate_experience' && onRateExperienceClick) onRateExperienceClick()
 	}
 
