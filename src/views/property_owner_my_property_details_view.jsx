@@ -767,6 +767,10 @@ const PropertyOwnerMyPropertyDetailsView = () => {
                       </div>
                     )
                   }
+                  const ownerReviews = [
+                    ...(property.reviews ?? []).map((r) => ({ ...r, propertyTitle: property.title, propertyId: property.id })),
+                    ...(property.relatedProperties ?? []).flatMap((rp) => (rp.reviews ?? []).map((r) => ({ ...r, propertyTitle: rp.title ?? rp.description, propertyId: rp.id })))
+                  ]
                   const contactOwnerButton = (
                     <button
                       key='contact'
@@ -783,8 +787,9 @@ const PropertyOwnerMyPropertyDetailsView = () => {
                                 propertyTypes: 'Apartments, Duplexes, Studios, Lodges, etc.',
                                 responseTime: 'Responds within 2 hours',
                                 paymentPolicies: 'Refundable',
-                                paymentOptions: 'Cash - Bank transfer'
+                                paymentOptions: 'Cash - Bank transfer - Card'
                               },
+                              reviews: ownerReviews,
                               from: location.pathname
                             }
                           })
