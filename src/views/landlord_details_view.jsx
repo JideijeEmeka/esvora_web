@@ -16,13 +16,6 @@ const DEFAULT_LISTINGS = [
 	{ id: 4, image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400', price: '₦80,000', description: '2 bedroom cozy apartment', location: 'Surulere, Lagos, Nigeria', available: true }
 ]
 
-const SAMPLE_REVIEWS = [
-	{ id: 1, name: 'Christiana Emeka', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80', rating: 4.0, time: '12:32pm', day: 'Tue', comment: 'The apartment was clean, cozy, and exactly as advertised. Perfect short stay would definitely book again!' },
-	{ id: 2, name: 'Efe Oghene', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80', rating: 4.5, time: '10:15am', day: 'Mon', comment: 'Great property with excellent amenities. The landlord is very responsive and helpful.' },
-	{ id: 3, name: 'John Doe', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80', rating: 5.0, time: '3:45pm', day: 'Wed', comment: 'Amazing property! Everything was perfect. Would definitely book again.' },
-	{ id: 4, name: 'Ada Okafor', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80', rating: 3.5, time: '9:00am', day: 'Thu', comment: 'Good value for money. Location was convenient. Minor issues with hot water.' }
-]
-
 const DEFAULT_LANDLORD = {
 	name: 'Osaite Emmanuel',
 	email: 'emmanuelosaite@gmail.com',
@@ -34,15 +27,27 @@ const DEFAULT_LANDLORD = {
 	propertyTypes: 'Apartments, Duplexes, Studios, Lodges, etc.',
 	responseTime: 'Responds within 2 hours',
 	paymentPolicies: 'Refundable',
-	paymentOptions: 'Cash - Bank transfer',
+	paymentOptions: 'Cash - Bank transfer - Card',
 	listingsCount: 32,
 	listings: DEFAULT_LISTINGS
+}
+
+const DICEBEAR_ADVENTURER = 'https://api.dicebear.com/9.x/adventurer/svg'
+
+function getReviewAvatarSrc(avatar, fallbackSeed = '') {
+	const seed = (fallbackSeed ?? '').trim() || `review-${Math.random().toString(36).slice(2)}`
+	if (avatar && typeof avatar === 'string' && avatar.trim()) {
+		if (avatar.startsWith('data:') || avatar.startsWith('http')) return avatar
+		return `${DICEBEAR_ADVENTURER}?seed=${encodeURIComponent(avatar)}`
+	}
+	return `${DICEBEAR_ADVENTURER}?seed=${encodeURIComponent(seed)}`
 }
 
 const LandlordDetailsView = () => {
 	const navigate = useNavigate()
 	const location = useLocation()
 	const landlord = location.state?.landlord || DEFAULT_LANDLORD
+	const reviews = location.state?.reviews ?? []
 	
 	const [favorites, setFavorites] = useState(new Set())
 	const [isFilterOpen, setIsFilterOpen] = useState(false)
@@ -59,8 +64,9 @@ const LandlordDetailsView = () => {
 		window.scrollTo(0, 0)
 	}, [])
 
-	const overallRating = 4.3
-	const totalReviews = 230
+	const hasReviews = reviews.length > 0
+	const overallRating = hasReviews ? reviews.reduce((s, r) => s + (Number(r?.rating) || 0), 0) / reviews.length : 0
+	const totalReviews = reviews.length
 	const listings = (landlord.listings && landlord.listings.length > 0)
 		? landlord.listings.map((p) => ({
 			...p,
@@ -203,7 +209,7 @@ const LandlordDetailsView = () => {
 									<p className='text-[16px] text-gray-600 font-medium'>Refundable</p>
 									<Divider className='my-6'/>
 									<li><span className='font-medium'>Payment options:</span> {landlord.paymentOptions}</li>
-									<p className='text-[16px] text-gray-600 font-medium'>Cash - Bank transfer</p>
+									<p className='text-[16px] text-gray-600 font-medium'>{landlord.paymentOptions || 'Cash - Bank transfer - Card'}</p>
 								</ul>
 							</div>
 						</div>
@@ -254,12 +260,13 @@ const LandlordDetailsView = () => {
 					<div>
 						<h2 className='text-[24px] font-semibold text-gray-900 mb-4'>Reviews</h2>
 						<div className='flex items-baseline gap-2 mb-2'>
-							<span className='text-[36px] font-bold text-gray-900'>{overallRating}</span>
+							<span className='text-[36px] font-bold text-gray-900'>{Number(overallRating).toFixed(1)}</span>
 							{renderStars(overallRating)}
 						</div>
-						<p className='text-[14px] text-gray-600 mb-12'>Based on reviews from verified users</p>
+						<p className='text-[14px] text-gray-600 mb-12'>{hasReviews ? 'Based on reviews from verified users' : 'No reviews yet'}</p>
 
-						{/* Control bar: Search, All, Filter (reviews_view pattern) */}
+						{/* Control bar: Search, All, Filter (reviews_view pattern) - only when we have reviews */}
+						{hasReviews && (
 						<div className='flex flex-wrap md:w-[900px] max-md:flex-col items-center gap-3 mb-6 relative'>
 						 <p className='text-[16px] font-medium text-gray-700'>Most recents review</p>
 							<div className='flex-1 min-w-[200px] max-md:w-[300px] relative ml-10 max-md:ml-0'>
@@ -321,26 +328,38 @@ const LandlordDetailsView = () => {
 							</div>
 							</div>
 						</div>
+						)}
 
 						{/* Review cards - two columns on md+ */}
 						<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-							{SAMPLE_REVIEWS.map((review) => (
-								<div key={review.id} className='flex gap-4 p-4 bg-white rounded-xl border border-gray-200'>
-									<img src={review.avatar} alt={review.name} className='w-12 h-12 rounded-full object-cover shrink-0' />
-									<div className='min-w-0 flex-1'>
-										<p className='text-[16px] font-semibold text-gray-900'>{review.name}</p>
-										<div className='flex items-center gap-2 mt-1 text-[14px] text-gray-500'>
-											<span>{review.rating}</span>
-											{renderStars(review.rating)}
-											<span>{review.time}</span>
-											<span>{review.day}</span>
+							{reviews.map((review, idx) => {
+								const userName = review?.user?.fullname ?? review?.user?.full_name ?? review?.name ?? 'Anonymous'
+								const userAvatar = review?.user?.avatar ?? review?.user?.profile_image ?? review?.avatar
+								const avatarSrc = getReviewAvatarSrc(userAvatar, userName)
+								const rating = Number(review?.rating) || 0
+								const comment = review?.comment?.trim() || 'No comment'
+								const createdAt = review?.created_at ?? review?.createdAt ?? ''
+								const timeStr = createdAt ? new Date(createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : (review?.time ?? '')
+								const dayStr = createdAt ? new Date(createdAt).toLocaleDateString('en-US', { weekday: 'short' }) : (review?.day ?? '')
+								return (
+									<div key={review?.id ?? idx} className='flex gap-4 p-4 bg-white rounded-xl border border-gray-200'>
+										<img src={avatarSrc} alt={userName} className='w-12 h-12 rounded-full object-cover shrink-0' />
+										<div className='min-w-0 flex-1'>
+											<p className='text-[16px] font-semibold text-gray-900'>{userName}</p>
+											<div className='flex items-center gap-2 mt-1 text-[14px] text-gray-500'>
+												<span>{rating > 0 ? rating.toFixed(1) : ''}</span>
+												{renderStars(rating)}
+												{timeStr && <span>{timeStr}</span>}
+												{dayStr && <span>{dayStr}</span>}
+											</div>
+											<p className='text-[14px] text-gray-700 mt-2 leading-relaxed'>{comment}</p>
 										</div>
-										<p className='text-[14px] text-gray-700 mt-2 leading-relaxed'>{review.comment}</p>
 									</div>
-								</div>
-							))}
+								)
+							})}
 						</div>
 
+						{hasReviews && (
 						<div className='flex justify-center mt-8'>
 							<button
 								type='button'
@@ -350,6 +369,7 @@ const LandlordDetailsView = () => {
 								<ChevronDown className='w-5 h-5' />
 							</button>
 						</div>
+						)}
 					</div>
 				</div>
 			</div>
