@@ -6,7 +6,7 @@ import Footer from '../components/footer'
 import PropertyCardWidget from '../components/property_card_widget'
 import Loader from '../components/loader'
 import FilterPropertiesWidget from '../components/filter_properties_widget'
-import { Search, Filter, ChevronLeft, ChevronRight, X, MapIcon } from 'lucide-react'
+import { Search, Filter, ChevronLeft, ChevronRight, X } from 'lucide-react' // MapIcon - map commented out
 import { getPropertyTypeLabel, getStateLabel, getFurnishingLabel } from '../lib/constants'
 import propertyController from '../controllers/property_controller'
 import { selectProperties } from '../redux/slices/propertySlice'
@@ -252,10 +252,11 @@ const ShortletView = () => {
 								<Filter className='w-5 h-5 text-gray-700' />
 								<span className='text-[16px] font-medium text-gray-700'>Filter</span>
 							</button>
+							{/* Map - commented out
 							<button className='flex items-center gap-2 px-4 py-3 bg-white border border-gray-300 rounded-full hover:bg-gray-50 transition-colors'>
 								<MapIcon className='w-5 h-5 text-gray-700' />
 								<span className='text-[16px] font-medium text-gray-700'>Map</span>
-							</button>
+							</button> */}
 							<button
 								type='button'
 								onClick={handleSearchClick}
