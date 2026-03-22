@@ -93,7 +93,7 @@ const ProfileView = () => {
 	useEffect(() => {
 		const token = getToken()
 		if (!token || !(token ?? '').trim()) {
-			navigate('/explore', { replace: true })
+			navigate('/login', { replace: true })
 		}
 	}, [navigate])
 	const [isLoggingOut, setIsLoggingOut] = useState(false)
