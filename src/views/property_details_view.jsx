@@ -44,6 +44,17 @@ import LandlordDetailsWidget from '../components/landlord_details_widget'
 import Loader from '../components/loader'
 
 
+const DICEBEAR_ADVENTURER = 'https://api.dicebear.com/9.x/adventurer/svg'
+
+function getLandlordAvatarSrc(avatar, fallbackSeed = '') {
+	const seed = (fallbackSeed ?? '').trim() || `landlord-${Math.random().toString(36).slice(2)}`
+	if (avatar && typeof avatar === 'string' && avatar.trim()) {
+		if (avatar.startsWith('data:') || avatar.startsWith('http')) return avatar
+		return `${DICEBEAR_ADVENTURER}?seed=${encodeURIComponent(avatar)}`
+	}
+	return `${DICEBEAR_ADVENTURER}?seed=${encodeURIComponent(seed)}`
+}
+
 const FEATURE_ICONS = {
   WiFi: Wifi,
   'WiFi Available': Wifi,
@@ -76,6 +87,7 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
 	const [isSendRequestOpen, setIsSendRequestOpen] = useState(false)
 	const [isSendRequestSubmitting, setIsSendRequestSubmitting] = useState(false)
 	const [isRequestSubmittedOpen, setIsRequestSubmittedOpen] = useState(false)
+	const [fetchedReviews, setFetchedReviews] = useState({})
   const relatedPropertiesRef = useRef(null)
 
   useEffect(() => {
@@ -114,7 +126,9 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
       price: rp.price ?? rp.price_formatted ?? '—',
       description: rp.description ?? rp.title ?? '—',
       location: rp.location ?? rp.address ?? '—',
-      available: rp.status !== 'inactive'
+      available: rp.status !== 'inactive',
+      reviews: Array.isArray(rp.reviews) ? rp.reviews : [],
+      reviewCount: rp.review_count ?? rp.reviews_count ?? (Array.isArray(rp.reviews) ? rp.reviews.length : 0)
     }))
   } : null
 
@@ -400,11 +414,6 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                   alt={property.title}
                   className='w-full h-full object-cover'
                 />
-                {selectedImageIndex < property.images.length - 1 && (
-                  <div className='absolute bottom-4 right-4 bg-black/50 text-white px-4 py-2 rounded-full text-[14px] font-medium'>
-                    +{property.images.length - 4} more
-                  </div>
-                )}
               </div>
               <div className='flex gap-3 overflow-x-auto scrollbar-hide'>
                 {property.images.slice(0, 4).map((image, index) => (
@@ -530,7 +539,7 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                     </div>
                     <div className='flex items-center gap-4 mb-8'>
                       <img
-                        src={property.landlord.avatar}
+                        src={getLandlordAvatarSrc(property.landlord.avatar, property.landlord.name || property.landlord.email || property.id)}
                         alt={property.landlord.name}
                         className='w-12 h-12 rounded-full object-cover'
                       />
@@ -539,7 +548,7 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                           {property.landlord.name}
                         </p>
                         <p className='text-[12px] text-gray-600 mt-1'>
-                            Since {property.landlord.joinDate} • {property.landlord.listedProperties} Listed properties
+                            Since {property.landlord.joinDate} • {property.landlord.listedProperties ?? property.landlord.number_of_properties ?? 0} Listed properties
                         </p>
                       </div>
                     </div>
@@ -604,11 +613,48 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
               )}
 
               {/* Landlord Details Tab */}
-              {activeTab === 'landlord' && (
-                <>
-                <LandlordDetailsWidget landlord={property.landlord} />     
-                </>
-              )}
+              {activeTab === 'landlord' && (() => {
+                const currentWithReviews = (property.reviews?.length ?? 0) > 0
+                  ? [{ id: property.id, title: property.title, image: property.image, location: property.location, reviews: property.reviews ?? [], reviewCount: property.reviewCount ?? property.reviews?.length ?? 0 }]
+                  : []
+                const relatedWithReviews = (property.relatedProperties ?? []).filter(
+                  (rp) => (rp.reviewCount ?? (rp.reviews?.length ?? 0)) > 0
+                ).map((rp) => ({
+                  id: rp.id,
+                  title: rp.description,
+                  image: rp.image,
+                  location: rp.location,
+                  reviews: rp.reviews ?? [],
+                  reviewCount: rp.reviewCount ?? rp.reviews?.length ?? 0
+                }))
+                const propertiesWithReviews = [...currentWithReviews, ...relatedWithReviews.filter((p) => String(p.id) !== String(property.id))]
+                const landlordDetails = {
+                  ...property.landlord,
+                  dateJoined: property.landlord.joinDate || 'Nov 2025',
+                  listingsCount: property.landlord.listedProperties ?? property.landlord.number_of_properties ?? 0,
+                  avatar: getLandlordAvatarSrc(property.landlord.avatar, property.landlord.name || property.landlord.email || property.id),
+                  rating: 4.6,
+                  propertyTypes: 'Apartments, Duplexes, Studios, Lodges, etc.',
+                  responseTime: 'Responds within 2 hours',
+                  paymentPolicies: 'Refundable',
+                  paymentOptions: 'Cash - Bank transfer - Card'
+                }
+                return (
+                  <>
+                    <LandlordDetailsWidget
+                      landlord={landlordDetails}
+                      propertiesWithReviews={propertiesWithReviews}
+                      onContact={() => {
+                        window.scrollTo(0, 0)
+                        const reviews = propertiesWithReviews.flatMap((p) =>
+                          (p.reviews ?? []).map((r) => ({ ...r, propertyTitle: p.title, propertyId: p.id }))
+                        )
+                        navigate('/landlord-details', { state: { landlord: landlordDetails, reviews, from: location.pathname } })
+                      }}
+                    />
+                  </>
+                )
+              })()}
 
               {/* Location Tab - map commented out */}
               {/* {activeTab === 'location' && (
@@ -673,7 +719,7 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
           {/* Right Column - Sticky Sidebar */}
           <div className='w-full'>
             {/* Action Icons - Share, Schedule, Favorite */}
-              <div className='flex items-center justify-between gap-2 mb-6'>
+              <div className='flex items-center justify-between gap-2 mb-4'>
                 <button
                     onClick={() => setIsShareOpen(true)}
                     className='w-30 h-12 rounded-full border border-gray-300 bg-gray-50
@@ -713,7 +759,7 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
             <div className='bg-gray-50 border border-gray-200 rounded-2xl p-6 shadow-sm'>
 
               {/* Location Box */}
-              <div className='mb-6 pb-6 border-b border-gray-200'>
+              <div className='mb-4 pb-4 border-b border-gray-200'>
                 <div className='flex items-center justify-start mb-2'>
                     <Locate className='w-4 h-4 text-gray-700' />
                     <div className='flex flex-col items-start ml-2'>
@@ -742,8 +788,8 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
               </div>
 
               {/* Landlord Information */}
-              <div className='mb-6'>
-                <div className='flex items-center gap-2 mb-4'>
+              <div className='mb-1'>
+                <div className='flex items-center gap-2 mb-3'>
                   <h3 className='text-[18px] font-semibold text-gray-900'>Landlord</h3>
                   {property.landlord.verified && (
                     <span className='px-2 py-1 bg-green-100 text-green-700 text-[12px] font-medium rounded'>
@@ -751,9 +797,9 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                     </span>
                   )}
                 </div>
-                <div className='flex items-center gap-3 mb-4'>
+                <div className='flex items-center gap-3 mb-1'>
                   <img
-                    src={property.landlord.avatar}
+                    src={getLandlordAvatarSrc(property.landlord.avatar, property.landlord.name || property.landlord.email || property.id)}
                     alt={property.landlord.name}
                     className='w-10 h-10 rounded-full object-cover'
                   />
@@ -762,26 +808,16 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                       {property.landlord.name}
                     </p>
                     <p className='text-[12px] text-gray-500'>
-                      Since {property.landlord.joinDate} • {property.landlord.listedProperties} Listed properties
+                      Since {property.landlord.joinDate} • {property.landlord.listedProperties ?? property.landlord.number_of_properties ?? 0} Listed properties
                     </p>
                   </div>
                 </div>
               </div>
 
               {/* Call to Action Buttons */}
-              <div className='space-y-3'>
-                {onlyRateProperty ? (
-                  <button
-                    type='button'
-                    onClick={() => {
-                      window.scrollTo(0, 0)
-                      navigate(`/rate-property/${id}`)
-                    }}
-                    className='w-full bg-primary text-white px-6 py-3 rounded-full hover:bg-primary/90 transition-colors font-medium text-[16px]'
-                  >
-                    Rate property
-                  </button>
-                ) : (() => {
+              {!onlyRateProperty && (
+              <div className='space-y-2'>
+                {(() => {
                   const requestStatus = (location.state?.requestStatus ?? '').toLowerCase()
                   const isApproved = requestStatus === 'accepted' || requestStatus === 'approved' || requestStatus === 'rented'
                   const isPending = requestStatus === 'pending'
@@ -807,31 +843,49 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                       amount: location.state?.requestAmount ?? property?.paymentInfo?.total
                     }
                     return (
-                      <div className='flex flex-col md:flex-row gap-3'>
-                        <button
-                          type='button'
-                          onClick={() => {
-                            window.scrollTo(0, 0)
-                            navigate(`/rate-property/${id}`)
-                          }}
-                          className='flex-1 border-2 border-gray-300 text-gray-700 rounded-full px-6 py-3 hover:bg-gray-50 transition-colors font-medium text-[16px]'
-                        >
-                          Rate property
-                        </button>
-                        <button
-                          type='button'
-                          onClick={() => navigate(`/payment/${id}`, { state: paymentState })}
-                          className='flex-1 bg-primary text-white px-6 py-3 rounded-full hover:bg-primary/90 transition-colors font-medium text-[16px]'
-                        >
-                          Make payment
-                        </button>
-                      </div>
+                      <button
+                        type='button'
+                        onClick={() => navigate(`/payment/${id}`, { state: paymentState })}
+                        className='w-full bg-primary text-white px-6 py-3 rounded-full hover:bg-primary/90 transition-colors font-medium text-[16px]'
+                      >
+                        Make payment
+                      </button>
                     )
                   }
                   const goToLogin = () => {
                     window.scrollTo(0, 0)
                     navigate('/login', { state: { from: location.pathname } })
                   }
+                  const landlordDetails = {
+                    ...property.landlord,
+                    dateJoined: property.landlord.joinDate || '__',
+                    listingsCount: property.landlord.listedProperties ?? property.landlord.number_of_properties ?? 0,
+                    number_of_properties: property.landlord.number_of_properties ?? property.landlord.listedProperties ?? 0,
+                    avatar: getLandlordAvatarSrc(property.landlord.avatar, property.landlord.name || property.landlord.email || property.id),
+                    rating: 4.6,
+                    propertyTypes: 'Apartments, Duplexes, Studios, Lodges, etc.',
+                    responseTime: 'Responds within 2 hours',
+                    paymentPolicies: 'Refundable',
+                    paymentOptions: 'Cash - Bank transfer - Card'
+                  }
+                  const currentReviews = (property.reviews?.length ?? 0) > 0 ? property.reviews : (fetchedReviews[String(property.id)] ?? [])
+                  const sidebarCurrentWithReviews = currentReviews.length > 0
+                    ? [{ id: property.id, title: property.title, image: property.image ?? property.images?.[0], location: property.location, reviews: currentReviews, reviewCount: property.reviewCount ?? currentReviews.length }]
+                    : []
+                  const sidebarRelatedWithReviews = (property.relatedProperties ?? []).filter(
+                    (rp) => (rp.reviewCount ?? (rp.reviews?.length ?? 0)) > 0
+                  ).map((rp) => ({
+                    id: rp.id,
+                    title: rp.description ?? rp.title,
+                    image: rp.image,
+                    location: rp.location,
+                    reviews: rp.reviews ?? [],
+                    reviewCount: rp.reviewCount ?? rp.reviews?.length ?? 0
+                  }))
+                  const sidebarPropertiesWithReviews = [...sidebarCurrentWithReviews, ...sidebarRelatedWithReviews.filter((p) => String(p.id) !== String(property.id))]
+                  const sidebarReviews = sidebarPropertiesWithReviews.flatMap((p) =>
+                    (p.reviews ?? []).map((r) => ({ ...r, propertyTitle: p.title, propertyId: p.id }))
+                  )
                   const contactOwnerButton = (
                     <button
                       key='contact'
@@ -840,16 +894,8 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                           window.scrollTo(0, 0)
                           navigate('/landlord-details', {
                             state: {
-                              landlord: {
-                                ...property.landlord,
-                                dateJoined: property.landlord.joinDate || 'Nov 2025',
-                                listingsCount: property.landlord.listedProperties || 24,
-                                rating: 4.6,
-                                propertyTypes: 'Apartments, Duplexes, Studios, Lodges, etc.',
-                                responseTime: 'Responds within 2 hours',
-                                paymentPolicies: 'Refundable',
-                                paymentOptions: 'Cash - Bank transfer'
-                              },
+                              landlord: landlordDetails,
+                              reviews: sidebarReviews,
                               from: location.pathname
                             }
                           })
@@ -899,6 +945,7 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                   )
                 })()}
               </div>
+              )}
             </div>
           </div>
         </div>
