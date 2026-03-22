@@ -324,10 +324,10 @@ const ExploreView = () => {
                 <Filter className='w-5 h-5 max-md:w-4 max-md:h-4 text-gray-700' />
                 <span className='text-[16px] max-md:text-[14px] font-medium text-gray-700'>Filter</span>
                 </button>
-                <button className='flex items-center gap-2 px-4 py-3 max-md:px-3 max-md:py-2.5 max-md:gap-1.5 bg-white/95 backdrop-blur-sm border border-gray-300 rounded-full hover:bg-white transition-colors'>
+                {/* <button className='flex items-center gap-2 px-4 py-3 max-md:px-3 max-md:py-2.5 max-md:gap-1.5 bg-white/95 backdrop-blur-sm border border-gray-300 rounded-full hover:bg-white transition-colors'>
                 <MapIcon className='w-5 h-5 max-md:w-4 max-md:h-4 text-gray-700' />
                 <span className='text-[16px] max-md:text-[14px] font-medium text-gray-700'>Map</span>
-                </button>
+                </button> */}
                 <button
                   type='button'
                   onClick={handleSearchClick}
