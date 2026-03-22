@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useLazyGetUnreadCountQuery } from '../repository/notification_repository'
 import { selectCurrentAccount } from '../redux/slices/accountSlice'
+import { getToken } from '../lib/localStorage'
 import logo from '../assets/logo.png'
 import NotificationWidget from './notification_widget'
 
@@ -103,7 +104,7 @@ const Navbar = () => {
 
       <div className={`max-md:absolute max-md:top-0 max-md:left-0 max-md:font-medium max-md:text-lg text-[16px]
         z-50 flex flex-col md:flex-row items-center max-md:justify-center gap-5 md:px-8 py-3 max-md:h-screen 
-        max-md:backdrop-blur-sm overflow:hidden transition-[width] duration-300 
+        max-md:backdrop-blur-xl max-md:bg-white/150 overflow:hidden transition-[width] duration-300 
         ${isOpen ? 'max-md:w-full' : 'max-md:w-0 max-md:hidden'}`}>
 
         <XIcon className='md:hidden absolute top-6 right-6 w-6 h-6 cursor-pointer' 
@@ -145,7 +146,7 @@ const Navbar = () => {
         >
           Shortlet
         </Link>
-        <Link 
+        {/* <Link 
           onClick={()=> {scrollTo(0,0), handleTabClick('message')}} 
           to="/messages" 
           className={`rounded-full px-4 py-2 transition-colors ${
@@ -153,7 +154,7 @@ const Navbar = () => {
           }`}
         >
           Message
-        </Link>
+        </Link> */}
         <Link 
           onClick={()=> {scrollTo(0,0), handleTabClick('requests')}} 
           to="/requests" 
@@ -188,7 +189,7 @@ const Navbar = () => {
             </span>
           )}
         </button>
-        <Link
+        {/* <Link
           to="/favourites"
           onClick={() => { setIsOpen(false) }}
           className={`md:hidden rounded-full px-4 py-2 transition-colors flex items-center gap-2 ${
@@ -196,7 +197,7 @@ const Navbar = () => {
           }`}
         >
           Favourites
-        </Link>
+        </Link> */}
         {/* <Link 
           onClick={()=> {scrollTo(0,0), handleTabClick('property-owner')}} 
           to="/property-owner" 
@@ -235,7 +236,7 @@ const Navbar = () => {
           fetchUnreadCount()
         }}
       />
-      <Link
+      {/* <Link
         to="/favourites"
         onClick={() => setIsOpen(false)}
         className={`max-md:hidden p-2 rounded-full transition-colors ${
@@ -250,8 +251,16 @@ const Navbar = () => {
             location.pathname === '/favourites' ? 'fill-primary' : ''
           }`}
         />
-      </Link>
-        {account && (
+      </Link> */}
+        {!((getToken() ?? '').trim()) ? (
+          <Link
+            to="/login"
+            onClick={() => { window.scrollTo(0, 0); setIsOpen(false) }}
+            className='px-4 py-2 rounded-full bg-primary text-white font-medium text-[14px] hover:bg-primary/90 transition-colors'
+          >
+            Log in
+          </Link>
+        ) : (
           <Link
             to="/profile"
             onClick={() => { window.scrollTo(0, 0); setIsOpen(false); handleTabClick('profile') }}
