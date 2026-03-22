@@ -117,7 +117,8 @@ export function normalizePropertyDetails(p) {
 			location: landlordData.location ?? [landlordData.city, landlordData.state].filter(Boolean).join(', ') ?? '—',
 			verified: !!landlordData.is_verified,
 			joinDate: landlordData.created_at ? new Date(landlordData.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '—',
-			listedProperties: landlordData.listed_properties ?? landlordData.listedProperties ?? 0,
+			listedProperties: landlordData.number_of_properties ?? landlordData.listed_properties ?? landlordData.listedProperties ?? 0,
+			number_of_properties: landlordData.number_of_properties ?? landlordData.listed_properties ?? landlordData.listedProperties ?? 0,
 			avatar: landlordData.avatar ?? landlordData.profile_image ?? ''
 		},
 		paymentInfo: {
