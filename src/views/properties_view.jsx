@@ -75,7 +75,7 @@ const MyPropertiesView = () => {
 				onClose={() => setIsFilterOpen(false)}
 				onApply={handleFilterApply}
 			/>
-			<div className='pt-30 px-6 md:px-16 lg:px-20 min-h-screen pb-10'>
+			<div className='pt-30 px-6 md:px-16 lg:px-20 min-h-screen pb-10 overflow-x-hidden'>
 				<div className='mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
 					<div>
 						<h1 className='text-[28px] font-semibold text-gray-900'>Properties</h1>
@@ -121,6 +121,7 @@ const MyPropertiesView = () => {
 								isFavorite={favorites.has(property.id)}
 								onFavoriteToggle={toggleFavorite}
 								onViewDetails={() => navigate(`/my-property-details/${property.id}`)}
+								fillWidth
 							/>
 						))}
 					</div>
