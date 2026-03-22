@@ -95,7 +95,7 @@ const PropertyOwnerMyPropertiesView = () => {
 				onClose={() => setIsFilterOpen(false)}
 				onApply={(filters) => setActiveFilters(filters && Object.keys(filters).length > 0 ? filters : null)}
 			/>
-			<div className='pt-30 pb-10 px-6 md:px-16 lg:px-20 min-h-screen bg-white'>
+			<div className='pt-30 pb-10 px-6 md:px-16 lg:px-20 min-h-screen bg-white overflow-x-hidden'>
 				<div className='max-w-6xl mx-auto w-full'>
 					<div className='mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
 						<div>
@@ -174,6 +174,7 @@ const PropertyOwnerMyPropertiesView = () => {
 									key={property.id}
 									property={property}
 									onViewDetails={() => navigate(`/property-owner/my-property-details/${property.id}`)}
+									fillWidth
 								/>
 							))}
 						</div>
