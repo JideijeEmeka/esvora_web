@@ -1,10 +1,10 @@
 import React from 'react'
 import { Heart, MapIcon } from 'lucide-react'
 
-const PropertyCardWidget = ({ property, isFavorite = false, onFavoriteToggle, onViewDetails }) => {
+const PropertyCardWidget = ({ property, isFavorite = false, onFavoriteToggle, onViewDetails, fillWidth = false }) => {
 	return (
 		<div 
-			className='shrink-0 w-[280px] bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow'
+			className={`bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow ${fillWidth ? 'w-full min-w-0' : 'shrink-0 w-[280px]'}`}
 			onClick={onViewDetails}
 		>
 			<div className='relative'>
