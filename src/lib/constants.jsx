@@ -41,6 +41,9 @@ export const kTenantSlice = 'tenant_slice'
 /** Redux state key for property slice */
 export const kPropertySlice = 'property_slice'
 
+/** Redux state key for browser geolocation snapshot (app launch) */
+export const kDeviceLocationSlice = 'device_location_slice'
+
 /** localStorage key for auth token */
 export const kToken = 'auth_token'
 
