@@ -349,6 +349,38 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
     )
   }
 
+  const listingType = (() => {
+    const pt =
+      property.property_type ??
+      property.raw?.property_type ??
+      property.raw?.type
+    const pTypeStr = typeof pt === 'string' ? pt : (pt?.name ?? pt?.slug ?? 'rent')
+    return (pTypeStr ?? 'rent').toLowerCase().replace(/\s+/g, '_')
+  })()
+  const isShortletProperty =
+    listingType === 'shortlet' || listingType === 'short_stay'
+
+  const buildPaymentNavigationState = () => ({
+    property: {
+      id: property.id,
+      uuid: property.uuid,
+      images: property.images,
+      image: property.image,
+      price: property.price,
+      paymentInfo: property.paymentInfo,
+      priceNGN: property.priceNGN,
+      totalPrice: property.paymentInfo?.total ?? property.priceNGN,
+      description: property.description,
+      title: property.title,
+      location: property.location,
+      fullAddress: property.fullAddress,
+      address: property.address,
+      property_type: property.property_type,
+    },
+    requestId: location.state?.requestId,
+    amount: location.state?.requestAmount ?? property?.paymentInfo?.total,
+  })
+
   return (
     <>
       <Navbar />
@@ -817,31 +849,44 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
               {/* Call to Action Buttons */}
               {!onlyRateProperty && (
               <div className='space-y-2'>
-                {(() => {
+                {isShortletProperty ? (
+                  <>
+                    {isLoggedIn ? (
+                      <button
+                        type='button'
+                        onClick={() => setIsSendRequestOpen(true)}
+                        className='w-full bg-primary text-white px-6 py-3 rounded-full hover:bg-primary/90 transition-colors font-medium text-[16px]'
+                      >
+                        Send request
+                      </button>
+                    ) : (
+                      <button
+                        type='button'
+                        onClick={() => {
+                          window.scrollTo(0, 0)
+                          navigate('/login', { state: { from: location.pathname } })
+                        }}
+                        className='w-full bg-primary text-white px-6 py-3 rounded-full hover:bg-primary/90 transition-colors font-medium text-[16px]'
+                      >
+                        Log in to send request
+                      </button>
+                    )}
+                    <button
+                      type='button'
+                      onClick={() =>
+                        navigate(`/payment/${id}`, { state: buildPaymentNavigationState() })
+                      }
+                      className='w-full border-2 border-primary text-primary bg-white px-6 py-3 rounded-full hover:bg-primary/5 transition-colors font-medium text-[16px]'
+                    >
+                      Make payment
+                    </button>
+                  </>
+                ) : (() => {
                   const requestStatus = (location.state?.requestStatus ?? '').toLowerCase()
                   const isApproved = requestStatus === 'accepted' || requestStatus === 'approved' || requestStatus === 'rented'
                   const isPending = requestStatus === 'pending'
                   if (isApproved) {
-                    const paymentState = {
-                      property: property ? {
-                        id: property.id,
-                        uuid: property.uuid,
-                        images: property.images,
-                        image: property.image,
-                        price: property.price,
-                        paymentInfo: property.paymentInfo,
-                        priceNGN: property.priceNGN,
-                        totalPrice: property.paymentInfo?.total ?? property.priceNGN,
-                        description: property.description,
-                        title: property.title,
-                        location: property.location,
-                        fullAddress: property.fullAddress,
-                        address: property.address,
-                        property_type: property.property_type
-                      } : null,
-                      requestId: location.state?.requestId,
-                      amount: location.state?.requestAmount ?? property?.paymentInfo?.total
-                    }
+                    const paymentState = buildPaymentNavigationState()
                     return (
                       <button
                         type='button'
