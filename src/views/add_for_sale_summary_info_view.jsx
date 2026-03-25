@@ -40,7 +40,12 @@ const AddForSaleSummaryInfoView = () => {
 	}
 
 	const handleContinue = () => {
-		navigate('/property-owner/add-sale/agreement')
+		navigate('/property-owner/add-sale/agreement', {
+			state: {
+				listingType: 'sale',
+				payload: summaryData
+			}
+		})
 	}
 
 	const handleEditBasicInfo = () => {
