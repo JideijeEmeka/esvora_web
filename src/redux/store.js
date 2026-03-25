@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { kAuthEndpoints, kAccountSlice, kAgreementEndpoints, kAgreementSlice, kWalletEndpoints, kWalletSlice, kTenantEndpoints, kTenantSlice, kPropertyEndpoints, kPropertySlice, kNotificationEndpoints } from '../lib/constants';
+import { kAuthEndpoints, kAccountSlice, kAgreementEndpoints, kAgreementSlice, kWalletEndpoints, kWalletSlice, kTenantEndpoints, kTenantSlice, kPropertyEndpoints, kPropertySlice, kNotificationEndpoints, kDeviceLocationSlice } from '../lib/constants';
 import { setupListeners } from '@reduxjs/toolkit/query';
 import { authApi } from '../repository/auth_repository';
 import { agreementApi } from '../repository/agreement_repository';
@@ -12,10 +12,12 @@ import { tenantApi } from '../repository/tenant_repository';
 import { propertyApi } from '../repository/property_repository';
 import { notificationApi } from '../repository/notification_repository';
 import propertyReducer from './slices/propertySlice';
+import deviceLocationReducer from './slices/deviceLocationSlice';
 
 export const store = configureStore({
 	reducer: {
 		[kAccountSlice]: accountReducer,
+		[kDeviceLocationSlice]: deviceLocationReducer,
 		[kAuthEndpoints]: authApi.reducer,
 		[kAgreementEndpoints]: agreementApi.reducer,
 		[kAgreementSlice]: agreementReducer,
