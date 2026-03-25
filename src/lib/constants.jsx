@@ -17,6 +17,7 @@ export const kBaseUrl = {
 export const baseUrl = kBaseUrl[env]
 
 export const kDebugMode = env === Env.kDev
+export const kGooglePlacesApiKey = import.meta.env.VITE_GOOGLE_PLACES_API_KEY || ''
 
 // ---
 
