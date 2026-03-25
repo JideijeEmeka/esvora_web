@@ -12,7 +12,8 @@ import { updateAccount } from '../redux/slices/accountSlice'
  */
 export async function checkAuthStatus(navigate) {
 	const token = getToken()
-	if (!token) {
+	const hasToken = typeof token === 'string' && token.trim().length > 0
+	if (!hasToken) {
 		navigate('/explore')
 		return
 	}
@@ -24,6 +25,11 @@ export async function checkAuthStatus(navigate) {
 	const user = res.data?.data?.user ?? res.data?.user
 	if (user) {
 		store.dispatch(updateAccount(user))
+	}
+	const landlordDashboardEnabled = Boolean(user?.landlord_dashboard)
+	if (landlordDashboardEnabled) {
+		navigate('/property-owner')
+		return
 	}
 	const fullname = (user?.fullname ?? user?.full_name ?? '').trim()
 	const nameMissing = !fullname
