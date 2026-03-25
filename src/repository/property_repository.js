@@ -143,6 +143,11 @@ export const propertyApi = createApi({
 			keepUnusedDataFor: 300,
 			refetchOnMountOrArgChange: false
 		}),
+		getPropertiesInMyState: builder.query({
+			query: () => ({ url: '/api/v1/properties/in-my-state' }),
+			keepUnusedDataFor: 300,
+			refetchOnMountOrArgChange: false
+		}),
 		getPropertyDetails: builder.query({
 			query: (uuid) => ({ url: `/api/v1/properties/${uuid}` })
 		}),
@@ -215,6 +220,8 @@ export const {
 	useSubmitRequestForShortletMutation,
 	useGetAllPropertiesQuery,
 	useLazyGetAllPropertiesQuery,
+	useGetPropertiesInMyStateQuery,
+	useLazyGetPropertiesInMyStateQuery,
 	useGetPropertyDetailsQuery,
 	useLazyGetPropertyDetailsQuery,
 	useGetPropertyTypesListQuery,
