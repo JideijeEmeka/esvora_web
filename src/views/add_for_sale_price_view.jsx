@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import PropertyOwnerNavbar from '../components/property_owner_navbar'
 import Footer from '../components/footer'
 import { ChevronDown } from 'lucide-react'
+import { saveAddListingDraft } from '../lib/localStorage'
 
 const DURATION_OPTIONS = [
 	{ value: 'per-night', label: 'Per night' },
@@ -16,18 +17,31 @@ const AddForSalePriceView = () => {
 	const [duration, setDuration] = useState('')
 	const [fromDate, setFromDate] = useState('')
 	const [toDate, setToDate] = useState('')
+	const [errors, setErrors] = useState({})
 
 	const handleBack = () => {
 		navigate(-1)
 	}
 
+	const formatCurrency = (value) => {
+		const cleaned = String(value || '').replace(/,/g, '').replace(/[^\d.]/g, '')
+		const [rawInteger = '', ...rest] = cleaned.split('.')
+		const integer = rawInteger.replace(/^0+(?=\d)/, '') || '0'
+		const decimal = rest.join('').slice(0, 2)
+		const hasDot = cleaned.includes('.')
+		const formattedInteger = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+		if (hasDot) return `${formattedInteger}.${decimal}`
+		return formattedInteger
+	}
+
 	const handleSaveAndContinue = () => {
-		console.log('Sale price data:', {
-			price,
-			duration,
-			fromDate,
-			toDate
-		})
+		const nextErrors = {}
+		const parsedPrice = Number((price || '0').replace(/,/g, ''))
+		if (!parsedPrice || parsedPrice <= 0) nextErrors.price = 'Price must be greater than 0'
+		if (!duration) nextErrors.duration = 'Duration is required'
+		setErrors(nextErrors)
+		if (Object.keys(nextErrors).length > 0) return
+		saveAddListingDraft('sale', { price: { price, duration, fromDate, toDate } })
 		navigate('/property-owner/add-sale/documents')
 	}
 
@@ -56,10 +70,14 @@ const AddForSalePriceView = () => {
 									type='text'
 									id='price'
 									value={price}
-									onChange={(e) => setPrice(e.target.value)}
+									onChange={(e) => {
+										setPrice(formatCurrency(e.target.value))
+										setErrors((prev) => ({ ...prev, price: '' }))
+									}}
 									placeholder='Enter fee'
 									className='w-full px-4 py-3 border border-gray-300 rounded-full text-[16px] bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
 								/>
+								{errors.price ? <p className='mt-1 text-sm text-red-500'>{errors.price}</p> : null}
 							</div>
 
 							<div>
@@ -70,8 +88,13 @@ const AddForSalePriceView = () => {
 									<select
 										id='duration'
 										value={duration}
-										onChange={(e) => setDuration(e.target.value)}
-										className='w-full px-4 py-3 pr-10 border border-gray-300 rounded-full text-[16px] bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none cursor-pointer'
+										onChange={(e) => {
+											setDuration(e.target.value)
+											setErrors((prev) => ({ ...prev, duration: '' }))
+										}}
+										className={`w-full px-4 py-3 pr-10 border rounded-full text-[16px] bg-white focus:outline-none focus:ring-2 appearance-none cursor-pointer ${
+											errors.duration ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-gray-300 focus:ring-primary/20 focus:border-primary'
+										}`}
 									>
 										<option value=''>e.g per night</option>
 										{DURATION_OPTIONS.map((option) => (
@@ -82,6 +105,7 @@ const AddForSalePriceView = () => {
 									</select>
 									<ChevronDown className='absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none' />
 								</div>
+								{errors.duration ? <p className='mt-1 text-sm text-red-500'>{errors.duration}</p> : null}
 							</div>
 
 							<div className='grid grid-cols-2 gap-4'>
