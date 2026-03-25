@@ -347,6 +347,147 @@ class PropertyController {
 		}
 	}
 
+	async listSchedules(propertyId, cb = {}) {
+		const { onSuccess, onError, forceRefetch } = cb
+		if (!propertyId) {
+			onError?.('Property is required')
+			return []
+		}
+		try {
+			const res = await store.dispatch(
+				propertyApi.endpoints.listSchedules.initiate(propertyId, { forceRefetch: !!forceRefetch })
+			)
+			if (res.error) {
+				onError?.(errMsg(res.error, 'Failed to load schedules'))
+				return []
+			}
+			const list = Array.isArray(res.data?.data)
+				? res.data.data
+				: Array.isArray(res.data) ? res.data : []
+			onSuccess?.(list)
+			return list
+		} catch (e) {
+			onError?.(errMsg(e, 'Failed to load schedules'))
+			return []
+		}
+	}
+
+	async showSchedule({ propertyId, scheduleId }, cb = {}) {
+		const { onSuccess, onError, forceRefetch } = cb
+		if (!propertyId || !scheduleId) {
+			onError?.('Property and schedule are required')
+			return null
+		}
+		try {
+			const res = await store.dispatch(
+				propertyApi.endpoints.showSchedule.initiate(
+					{ propertyId, scheduleId },
+					{ forceRefetch: !!forceRefetch }
+				)
+			)
+			if (res.error) {
+				onError?.(errMsg(res.error, 'Failed to load schedule'))
+				return null
+			}
+			const data = res.data?.data ?? res.data
+			onSuccess?.(data)
+			return data
+		} catch (e) {
+			onError?.(errMsg(e, 'Failed to load schedule'))
+			return null
+		}
+	}
+
+	async createSchedule({ propertyId, startTime, endTime, dayOfWeek }, cb = {}) {
+		const { onSuccess, onError } = cb
+		try {
+			const res = await store.dispatch(
+				propertyApi.endpoints.createSchedule.initiate({
+					propertyId,
+					body: {
+						start_time: startTime,
+						end_time: endTime,
+						day_of_week: dayOfWeek
+					}
+				})
+			)
+			if (res.error) {
+				onError?.(errMsg(res.error, 'Failed to create schedule'))
+				return null
+			}
+			const data = res.data?.data ?? res.data
+			onSuccess?.(data)
+			return data
+		} catch (e) {
+			onError?.(errMsg(e, 'Failed to create schedule'))
+			return null
+		}
+	}
+
+	async updateSchedule({ propertyId, scheduleId, startTime, endTime, dayOfWeek }, cb = {}) {
+		const { onSuccess, onError } = cb
+		try {
+			const res = await store.dispatch(
+				propertyApi.endpoints.updateSchedule.initiate({
+					propertyId,
+					scheduleId,
+					body: {
+						start_time: startTime,
+						end_time: endTime,
+						day_of_week: dayOfWeek
+					}
+				})
+			)
+			if (res.error) {
+				onError?.(errMsg(res.error, 'Failed to update schedule'))
+				return null
+			}
+			const data = res.data?.data ?? res.data
+			onSuccess?.(data)
+			return data
+		} catch (e) {
+			onError?.(errMsg(e, 'Failed to update schedule'))
+			return null
+		}
+	}
+
+	async toggleSchedule({ propertyId, scheduleId }, cb = {}) {
+		const { onSuccess, onError } = cb
+		try {
+			const res = await store.dispatch(
+				propertyApi.endpoints.toggleSchedule.initiate({ propertyId, scheduleId })
+			)
+			if (res.error) {
+				onError?.(errMsg(res.error, 'Failed to toggle schedule'))
+				return null
+			}
+			const data = res.data?.data ?? res.data
+			onSuccess?.(data)
+			return data
+		} catch (e) {
+			onError?.(errMsg(e, 'Failed to toggle schedule'))
+			return null
+		}
+	}
+
+	async deleteSchedule({ propertyId, scheduleId }, cb = {}) {
+		const { onSuccess, onError } = cb
+		try {
+			const res = await store.dispatch(
+				propertyApi.endpoints.deleteSchedule.initiate({ propertyId, scheduleId })
+			)
+			if (res.error) {
+				onError?.(errMsg(res.error, 'Failed to delete schedule'))
+				return false
+			}
+			onSuccess?.()
+			return true
+		} catch (e) {
+			onError?.(errMsg(e, 'Failed to delete schedule'))
+			return false
+		}
+	}
+
 	async addReview({ propertyId, rating, sentiment, tags, comment }, cb = {}) {
 		const { onSuccess, onError, setLoading } = cb
 		if (!propertyId) {
