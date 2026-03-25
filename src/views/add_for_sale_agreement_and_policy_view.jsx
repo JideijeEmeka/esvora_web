@@ -1,19 +1,48 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
+import { Loader2 } from 'lucide-react'
 import PropertyOwnerNavbar from '../components/property_owner_navbar'
+import { useCreatePropertyForSaleMutation } from '../repository/property_repository'
 
 const AddForSaleAgreementAndPolicyView = () => {
 	const navigate = useNavigate()
+	const location = useLocation()
 	const [isAgreed, setIsAgreed] = useState(false)
+	const [isSubmitting, setIsSubmitting] = useState(false)
+	const [createPropertyForSale] = useCreatePropertyForSaleMutation()
 
 	const handleBack = () => {
 		navigate(-1)
 	}
 
-	const handleSubmit = () => {
-		if (isAgreed) {
-			console.log('Property for sale submitted with agreement')
-			navigate('/property-owner/add-sale/success')
+	const handleSubmit = async () => {
+		if (!isAgreed || isSubmitting) return
+		const payload = location.state?.payload || {}
+		const extractPropertyId = (response) => {
+			const data = response?.data ?? response
+			return (
+				data?.uuid ??
+				data?.id ??
+				data?.property_id ??
+				response?.uuid ??
+				response?.id ??
+				null
+			)
+		}
+		try {
+			setIsSubmitting(true)
+			const created = await createPropertyForSale(payload).unwrap()
+			const createdPropertyId = extractPropertyId(created)
+			toast.success('Property for sale submitted successfully')
+			navigate('/property-owner/add-property/success', {
+				state: { propertyId: createdPropertyId }
+			})
+		} catch (error) {
+			const message = error?.data?.message || error?.message || 'Failed to submit property for sale'
+			toast.error(message)
+		} finally {
+			setIsSubmitting(false)
 		}
 	}
 
@@ -71,10 +100,17 @@ const AddForSaleAgreementAndPolicyView = () => {
 							<button
 								type='button'
 								onClick={handleSubmit}
-								disabled={!isAgreed}
+								disabled={!isAgreed || isSubmitting}
 								className='flex-1 bg-primary text-white px-8 py-4 rounded-full text-[18px] font-semibold hover:from-purple-700 hover:to-purple-500 transition-all shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none'
 							>
-								Submit
+								{isSubmitting ? (
+									<span className='inline-flex items-center gap-2'>
+										<Loader2 className='w-5 h-5 animate-spin' />
+										Submitting...
+									</span>
+								) : (
+									'Submit'
+								)}
 							</button>
 						</div>
 					</div>
