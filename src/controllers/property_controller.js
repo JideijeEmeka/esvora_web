@@ -144,6 +144,25 @@ class PropertyController {
 		}
 	}
 
+	async getPropertiesInMyState(cb = {}) {
+		const { onSuccess, onError, forceRefetch } = cb
+		try {
+			const res = await store.dispatch(
+				propertyApi.endpoints.getPropertiesInMyState.initiate(undefined, { forceRefetch: !!forceRefetch })
+			)
+			if (res.error) {
+				onError?.(errMsg(res.error, 'Failed to load properties in my state'))
+				return []
+			}
+			const list = fromPropertyListApiResponse(res.data)
+			onSuccess?.(list)
+			return list
+		} catch (e) {
+			onError?.(errMsg(e, 'Failed to load properties in my state'))
+			return []
+		}
+	}
+
 	async getPropertyDetails(uuid, cb = {}) {
 		const { onSuccess, onError, forceRefetch } = cb
 		if (!uuid) return null
