@@ -4,6 +4,7 @@ import Navbar from './components/navbar'
 import PropertyOwnerNavbar from './components/property_owner_navbar'
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { store } from './redux/store'
+import { captureDeviceLocationOnLaunch } from './lib/deviceLocation'
 import { authApi } from './repository/auth_repository'
 import { updateAccount, selectCurrentAccount } from './redux/slices/accountSlice'
 import { getToken } from './lib/localStorage'
@@ -90,6 +91,10 @@ const App = () => {
   const account = useSelector(selectCurrentAccount)
   const isAuthRoute = AUTH_PATHS.some((path) => pathname === path || pathname.startsWith(path + '/'))
   const usePropertyOwnerNavbar = account?.landlord_dashboard === true
+
+  useEffect(() => {
+    captureDeviceLocationOnLaunch(store.dispatch)
+  }, [])
 
   useEffect(() => {
     if (!getToken()) return
