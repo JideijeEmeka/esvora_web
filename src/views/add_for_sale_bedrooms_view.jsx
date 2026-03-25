@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import PropertyOwnerNavbar from '../components/property_owner_navbar'
 import Footer from '../components/footer'
 import { Plus, Minus } from 'lucide-react'
+import { saveAddListingDraft } from '../lib/localStorage'
 
 const AddForSaleBedroomsView = () => {
 	const navigate = useNavigate()
@@ -35,11 +36,7 @@ const AddForSaleBedroomsView = () => {
 	}
 
 	const handleSaveAndContinue = () => {
-		console.log('Bedrooms data:', {
-			bedrooms,
-			bathrooms,
-			beds
-		})
+		saveAddListingDraft('sale', { bedrooms: { bedrooms, bathrooms, beds } })
 		navigate('/property-owner/add-sale/images')
 	}
 
@@ -109,7 +106,7 @@ const AddForSaleBedroomsView = () => {
 							/>
 						</div>
 
-						<div className='flex gap-4 mt-12'>
+						<div className='flex flex-col md:flex-row gap-4 mt-12'>
 							<button
 								type='button'
 								onClick={handleBack}
