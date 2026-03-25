@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import PropertyOwnerNavbar from '../components/property_owner_navbar'
@@ -14,25 +14,84 @@ import { normalizeLandlordRequest } from '../lib/propertyUtils'
 
 const FILTERS = ['New', 'Pending', 'Approved']
 
+const normRequestStatus = (v) =>
+	(v ?? '')
+		.toString()
+		.trim()
+		.toLowerCase()
+		.replace(/[\s-]+/g, '_')
+
+/** Property id for schedule APIs: nested property or top-level fallbacks. */
+function resolveLandlordRequestPropertyId(raw) {
+	if (!raw || typeof raw !== 'object') return null
+	const p = raw.property
+	if (p && typeof p === 'object') {
+		const id = p.id ?? p.uuid ?? p.property_id
+		if (id != null && String(id).trim() !== '') return String(id).trim()
+	}
+	for (const k of ['property_id', 'property_uuid', 'propertyId']) {
+		const v = raw[k]
+		if (v != null && String(v).trim() !== '') return String(v).trim()
+	}
+	return null
+}
+
+function requestStatusCandidates(r) {
+	const raw = r?.raw ?? {}
+	return [
+		normRequestStatus(r?.status),
+		normRequestStatus(raw.status),
+		normRequestStatus(raw.display_status),
+	].filter(Boolean)
+}
+
+function requestMatchesAnyStatus(r, allowed) {
+	const set = new Set(allowed)
+	return requestStatusCandidates(r).some((c) => set.has(c))
+}
+
+const REQUEST_TAB_STATUS_MAP = {
+	New: ['new', 'pending'],
+	Pending: ['new', 'pending'],
+	Approved: [
+		'accepted',
+		'approved',
+		'checked_in',
+		'check_in',
+		'completed',
+		'complete',
+		'sold',
+		'success',
+		'successful',
+	],
+}
+
 const RequestsView = () => {
 	const navigate = useNavigate()
 	const [activeFilter, setActiveFilter] = useState('New')
 	const [isManageScheduleOpen, setIsManageScheduleOpen] = useState(false)
+	/** Snapshot at open so switching request tabs does not clear propertyId while the modal is open. */
+	const [manageSchedulePropertyId, setManageSchedulePropertyId] = useState(null)
 	const [isLoading, setIsLoading] = useState(true)
 	const [isRefreshing, setIsRefreshing] = useState(false)
 	const [pendingAction, setPendingAction] = useState({ requestId: null, type: null })
 	const landlordRequestsRaw = useSelector(selectLandlordRequests)
 	const allRequests = (landlordRequestsRaw ?? []).map(normalizeLandlordRequest).filter(Boolean)
-	const statusMap = {
-		New: ['new', 'pending'],
-		Pending: ['new', 'pending'],
-		Approved: ['accepted', 'approved']
-	}
-	const requests = allRequests.filter((r) => {
-		const s = (r?.status ?? r?.raw?.status ?? '').toLowerCase()
-		const allowed = statusMap[activeFilter]
-		return allowed ? allowed.includes(s) : true
-	})
+	const requests = useMemo(
+		() =>
+			allRequests.filter((r) => {
+				const allowed = REQUEST_TAB_STATUS_MAP[activeFilter]
+				return allowed ? requestMatchesAnyStatus(r, allowed) : true
+			}),
+		[allRequests, activeFilter],
+	)
+	const selectedPropertyId = useMemo(() => {
+		for (const r of requests) {
+			const pid = resolveLandlordRequestPropertyId(r.raw)
+			if (pid) return pid
+		}
+		return null
+	}, [requests])
 
 	useEffect(() => {
 		sessionStorage.setItem('propertyOwnerActiveTab', 'requests')
@@ -108,21 +167,28 @@ const RequestsView = () => {
 						<div className='flex items-center gap-3'>
 							<button
 								type='button'
-								onClick={() => setIsManageScheduleOpen(true)}
-								className='flex items-center gap-2 text-gray-500 hover:text-gray-700 text-[14px] font-medium transition-colors'
+								onClick={() => {
+									if (!selectedPropertyId) return
+									setManageSchedulePropertyId(selectedPropertyId)
+									setIsManageScheduleOpen(true)
+								}}
+								disabled={!selectedPropertyId}
+								aria-label='Manage schedule'
+								className='flex items-center gap-2 text-gray-500 hover:text-gray-700 text-[14px] font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-500'
 							>
 								<Settings className='w-4 h-4' />
-								Manage
+								Manage schedule
 							</button>
 						</div>
 					</div>
 
 					<ManageScheduleWidget
 						isOpen={isManageScheduleOpen}
-						onClose={() => setIsManageScheduleOpen(false)}
-						onSave={(slots) => {
-							console.log('Schedule saved', slots)
+						onClose={() => {
+							setIsManageScheduleOpen(false)
+							setManageSchedulePropertyId(null)
 						}}
+						propertyId={manageSchedulePropertyId}
 					/>
 
 					{/* Status filters */}
@@ -162,8 +228,7 @@ const RequestsView = () => {
 						) : requests.length === 0 ? (
 							<p className='text-gray-600 py-8'>No requests yet.</p>
 						) : requests.map((request) => {
-							const requestStatus = (request?.status ?? request?.raw?.status ?? '').toLowerCase()
-							const isApprovedRequest = requestStatus === 'accepted' || requestStatus === 'approved'
+							const isApprovedRequest = requestMatchesAnyStatus(request, REQUEST_TAB_STATUS_MAP.Approved)
 							const isDeclining = pendingAction.requestId === request.id && pendingAction.type === 'decline'
 							const isAccepting = pendingAction.requestId === request.id && pendingAction.type === 'accept'
 							const isActionLoading = isDeclining || isAccepting
@@ -270,7 +335,7 @@ const RequestsView = () => {
 												type='button'
 												onClick={(e) => {
 													e.stopPropagation()
-													handleCheckProperty(request?.raw?.property?.id ?? request?.raw?.property?.uuid)
+													handleCheckProperty(resolveLandlordRequestPropertyId(request?.raw))
 												}}
 												className='px-4 py-2 rounded-full text-[14px] font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors'
 											>
