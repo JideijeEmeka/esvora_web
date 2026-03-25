@@ -56,6 +56,42 @@ export const propertyApi = createApi({
 				method: 'DELETE'
 			})
 		}),
+		listSchedules: builder.query({
+			query: (propertyId) => ({
+				url: `/api/v1/landlord/properties/${propertyId}/schedules`
+			})
+		}),
+		showSchedule: builder.query({
+			query: ({ propertyId, scheduleId }) => ({
+				url: `/api/v1/landlord/properties/${propertyId}/schedules/${scheduleId}`
+			})
+		}),
+		createSchedule: builder.mutation({
+			query: ({ propertyId, body }) => ({
+				url: `/api/v1/landlord/properties/${propertyId}/schedules`,
+				method: 'POST',
+				body
+			})
+		}),
+		updateSchedule: builder.mutation({
+			query: ({ propertyId, scheduleId, body }) => ({
+				url: `/api/v1/landlord/properties/${propertyId}/schedules/${scheduleId}`,
+				method: 'PUT',
+				body
+			})
+		}),
+		toggleSchedule: builder.mutation({
+			query: ({ propertyId, scheduleId }) => ({
+				url: `/api/v1/landlord/properties/${propertyId}/schedules/${scheduleId}/toggle`,
+				method: 'POST'
+			})
+		}),
+		deleteSchedule: builder.mutation({
+			query: ({ propertyId, scheduleId }) => ({
+				url: `/api/v1/landlord/properties/${propertyId}/schedules/${scheduleId}`,
+				method: 'DELETE'
+			})
+		}),
 		createPropertyForRent: builder.mutation({
 			query: (body) => ({
 				url: '/api/v1/landlord/properties',
@@ -161,6 +197,14 @@ export const {
 	useLazyViewPropertyQuery,
 	useUpdatePropertyMutation,
 	useDeletePropertyMutation,
+	useListSchedulesQuery,
+	useLazyListSchedulesQuery,
+	useShowScheduleQuery,
+	useLazyShowScheduleQuery,
+	useCreateScheduleMutation,
+	useUpdateScheduleMutation,
+	useToggleScheduleMutation,
+	useDeleteScheduleMutation,
 	useCreatePropertyForRentMutation,
 	useCreatePropertyForShortletMutation,
 	useCreatePropertyForSaleMutation,
