@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PropertyOwnerNavbar from '../components/property_owner_navbar'
 import Footer from '../components/footer'
-import { ChevronDown, MapPin } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import { NIGERIAN_STATES_SORTED, getLocalGovernmentsByState } from '../lib/constants'
+import AddressInputWithMap from '../components/address_input_with_map'
+import { saveAddListingDraft } from '../lib/localStorage'
 
 const AddShortletBasicInfoFormView = () => {
 	const navigate = useNavigate()
@@ -13,9 +15,12 @@ const AddShortletBasicInfoFormView = () => {
 		state: '',
 		city: '',
 		houseAddress: '',
-		postalCode: ''
+		postalCode: '',
+		latitude: -42.22,
+		longitude: 33.636
 	})
 	const [availableLocalGovernments, setAvailableLocalGovernments] = useState([])
+	const [errors, setErrors] = useState({})
 
 	// Load local governments when state is selected
 	useEffect(() => {
@@ -33,6 +38,19 @@ const AddShortletBasicInfoFormView = () => {
 			...prev,
 			[field]: value
 		}))
+		setErrors((prev) => ({ ...prev, [field]: '' }))
+	}
+
+	const validate = () => {
+		const nextErrors = {}
+		if (!formData.title.trim()) nextErrors.title = 'Title is required'
+		if (!formData.description.trim()) nextErrors.description = 'Description is required'
+		if (!formData.state) nextErrors.state = 'State is required'
+		if (!formData.city) nextErrors.city = 'City is required'
+		if (!formData.houseAddress.trim()) nextErrors.houseAddress = 'House address is required'
+		if (!formData.postalCode.trim()) nextErrors.postalCode = 'Postal code is required'
+		setErrors(nextErrors)
+		return Object.keys(nextErrors).length === 0
 	}
 
 	const handleBack = () => {
@@ -40,8 +58,8 @@ const AddShortletBasicInfoFormView = () => {
 	}
 
 	const handleSaveAndContinue = () => {
-		// Handle form submission
-		console.log('Shortlet form data:', formData)
+		if (!validate()) return
+		saveAddListingDraft('shortlet', { basicInfo: formData })
 		navigate('/property-owner/add-shortlet/features')
 	}
 
@@ -78,8 +96,11 @@ const AddShortletBasicInfoFormView = () => {
 									value={formData.title}
 									onChange={(e) => handleInputChange('title', e.target.value)}
 									placeholder='Enter property title'
-									className='w-full px-4 py-3 border border-gray-300 rounded-full text-[16px] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
+									className={`w-full px-4 py-3 border rounded-full text-[16px] focus:outline-none focus:ring-2 ${
+										errors.title ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-gray-300 focus:ring-primary/20 focus:border-primary'
+									}`}
 								/>
+								{errors.title ? <p className='mt-1 text-sm text-red-500'>{errors.title}</p> : null}
 							</div>
 
 							{/* Description */}
@@ -93,8 +114,11 @@ const AddShortletBasicInfoFormView = () => {
 									value={formData.description}
 									onChange={(e) => handleInputChange('description', e.target.value)}
 									placeholder='Describe property'
-									className='w-full px-4 py-3 border border-gray-300 rounded-full text-[16px] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
+									className={`w-full px-4 py-3 border rounded-full text-[16px] focus:outline-none focus:ring-2 ${
+										errors.description ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-gray-300 focus:ring-primary/20 focus:border-primary'
+									}`}
 								/>
+								{errors.description ? <p className='mt-1 text-sm text-red-500'>{errors.description}</p> : null}
 							</div>
 
 							{/* State */}
@@ -107,7 +131,9 @@ const AddShortletBasicInfoFormView = () => {
 										id='state'
 										value={formData.state}
 										onChange={(e) => handleInputChange('state', e.target.value)}
-										className='w-full px-4 py-3 pr-10 border border-gray-300 rounded-full text-[16px] bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none cursor-pointer'
+										className={`w-full px-4 py-3 pr-10 border rounded-full text-[16px] bg-white focus:outline-none focus:ring-2 appearance-none cursor-pointer ${
+											errors.state ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-gray-300 focus:ring-primary/20 focus:border-primary'
+										}`}
 									>
 										<option value=''>Select state</option>
 										{NIGERIAN_STATES_SORTED.map((stateOption) => (
@@ -118,6 +144,7 @@ const AddShortletBasicInfoFormView = () => {
 									</select>
 									<ChevronDown className='absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none' />
 								</div>
+								{errors.state ? <p className='mt-1 text-sm text-red-500'>{errors.state}</p> : null}
 							</div>
 
 							{/* City */}
@@ -131,7 +158,9 @@ const AddShortletBasicInfoFormView = () => {
 										value={formData.city}
 										onChange={(e) => handleInputChange('city', e.target.value)}
 										disabled={!formData.state}
-										className='w-full px-4 py-3 pr-10 border border-gray-300 rounded-full text-[16px] bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed'
+										className={`w-full px-4 py-3 pr-10 border rounded-full text-[16px] bg-white focus:outline-none focus:ring-2 appearance-none cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed ${
+											errors.city ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-gray-300 focus:ring-primary/20 focus:border-primary'
+										}`}
 									>
 										<option value=''>Select city</option>
 										{availableLocalGovernments.map((lgaOption) => (
@@ -142,6 +171,7 @@ const AddShortletBasicInfoFormView = () => {
 									</select>
 									<ChevronDown className='absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none' />
 								</div>
+								{errors.city ? <p className='mt-1 text-sm text-red-500'>{errors.city}</p> : null}
 							</div>
 
 							{/* House Address */}
@@ -149,17 +179,15 @@ const AddShortletBasicInfoFormView = () => {
 								<label htmlFor='houseAddress' className='block text-[16px] font-medium text-gray-900 mb-2'>
 									House address
 								</label>
-								<div className='relative'>
-									<input
-										type='text'
-										id='houseAddress'
-										value={formData.houseAddress}
-										onChange={(e) => handleInputChange('houseAddress', e.target.value)}
-										placeholder='Enter address'
-										className='w-full px-4 py-3 pr-12 border border-gray-300 rounded-full text-[16px] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
-									/>
-									<MapPin className='absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none' />
-								</div>
+								<AddressInputWithMap
+									value={formData.houseAddress}
+									onChangeAddress={(address) => handleInputChange('houseAddress', address)}
+									onChangePostalCode={(postalCode) => handleInputChange('postalCode', postalCode)}
+									onLocationChange={({ latitude, longitude }) => {
+										setFormData((prev) => ({ ...prev, latitude, longitude }))
+									}}
+								/>
+								{errors.houseAddress ? <p className='mt-1 text-sm text-red-500'>{errors.houseAddress}</p> : null}
 							</div>
 
 							{/* Postal Code */}
@@ -173,8 +201,11 @@ const AddShortletBasicInfoFormView = () => {
 									value={formData.postalCode}
 									onChange={(e) => handleInputChange('postalCode', e.target.value)}
 									placeholder='Enter postal code'
-									className='w-full px-4 py-3 border border-gray-300 rounded-full text-[16px] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
+									className={`w-full px-4 py-3 border rounded-full text-[16px] focus:outline-none focus:ring-2 ${
+										errors.postalCode ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-gray-300 focus:ring-primary/20 focus:border-primary'
+									}`}
 								/>
+								{errors.postalCode ? <p className='mt-1 text-sm text-red-500'>{errors.postalCode}</p> : null}
 							</div>
 						</div>
 
