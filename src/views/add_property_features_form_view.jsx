@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import PropertyOwnerNavbar from '../components/property_owner_navbar'
 import Footer from '../components/footer'
 import { Wifi, Home, Droplets, Car, Zap, Pen, Plus, Minus } from 'lucide-react'
+import { saveAddListingDraft } from '../lib/localStorage'
 
 const AddPropertyFeaturesFormView = () => {
 	const navigate = useNavigate()
@@ -34,7 +35,7 @@ const AddPropertyFeaturesFormView = () => {
 
 	const handleSaveAndContinue = () => {
 		// Handle form submission
-		console.log('Selected features:', selectedFeatures)
+		saveAddListingDraft('rent', { features: selectedFeatures })
 		navigate('/property-owner/add-property/price')
 	}
 
