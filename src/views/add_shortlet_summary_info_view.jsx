@@ -41,7 +41,12 @@ const AddShortletSummaryInfoView = () => {
 	}
 
 	const handleContinue = () => {
-		navigate('/property-owner/add-property/agreement')
+		navigate('/property-owner/add-property/agreement', {
+			state: {
+				listingType: 'shortlet',
+				payload: summaryData
+			}
+		})
 	}
 
 	const handleEditBasicInfo = () => {
