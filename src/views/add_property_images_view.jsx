@@ -1,13 +1,31 @@
-import React, { useState, useRef } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PropertyOwnerNavbar from '../components/property_owner_navbar'
 import Footer from '../components/footer'
 import { Image, X, Minus } from 'lucide-react'
+import { getAddPropertyDraftImages, saveAddPropertyDraftImages } from '../lib/localStorage'
 
 const AddPropertyImagesView = () => {
 	const navigate = useNavigate()
 	const fileInputRef = useRef(null)
 	const [images, setImages] = useState([])
+
+	useEffect(() => {
+		const saved = getAddPropertyDraftImages()
+		if (Array.isArray(saved) && saved.length > 0) {
+			setImages(
+				saved.map((img) => ({
+					id: img.id ?? Date.now() + Math.random(),
+					url: img.url,
+					file: null
+				}))
+			)
+		}
+	}, [])
+
+	useEffect(() => {
+		saveAddPropertyDraftImages(images)
+	}, [images])
 
 	const handleFileSelect = (e) => {
 		const files = Array.from(e.target.files)
@@ -82,9 +100,13 @@ const AddPropertyImagesView = () => {
 	}
 
 	const handleSaveAndContinue = () => {
-		// Handle form submission
-		console.log('Images:', images)
-		navigate('/property-owner/add-property/summary')
+		saveAddPropertyDraftImages(images)
+		navigate('/property-owner/add-property/summary', {
+			state: {
+				images: images.map((img) => img.url).filter(Boolean),
+				imageFiles: images.map((img) => img.file).filter(Boolean)
+			}
+		})
 	}
 
 	// Create array of 6 slots (filled + empty)
@@ -182,7 +204,7 @@ const AddPropertyImagesView = () => {
 							</p>
 
 							{/* Action Buttons */}
-							<div className='flex gap-4 mt-8'>
+							<div className='flex flex-col md:flex-row gap-4 mt-8'>
 								<button
 									type='button'
 									onClick={handleBack}
