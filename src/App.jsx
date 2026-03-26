@@ -32,6 +32,8 @@ import FavoritesView from './views/favorites_view'
 import RatePropertyView from './views/rate_property_view'
 import PropertyOwnerRatePropertyView from './views/property_owner_rate_property_view'
 import ScheduleInspectionView from './views/schedule_inspection_view'
+import PropertySchedulesView from './views/property_schedules_view'
+import PropertyScheduleDetailsView from './views/property_schedule_details_view'
 import PaymentView from './views/payment_view'
 import ProfileView from './views/profile_view'
 import BuyView from './views/buy_view'
@@ -192,6 +194,8 @@ const App = () => {
         <Route path="/rate-property/:id?" element={<RatePropertyView />} />
         <Route path="/property_owner/rate-property/:id?" element={<PropertyOwnerRatePropertyView />} />
         <Route path="/schedule-inspection/:id?" element={<ScheduleInspectionView />} />
+        <Route path="/property-schedules/:propertyId" element={<PropertySchedulesView />} />
+        <Route path="/property-schedules/:propertyId/:scheduleId" element={<PropertyScheduleDetailsView />} />
         <Route path="/payment/:id?" element={<PaymentView />} />
         <Route path="/profile" element={<ProfileView />} />
         <Route path="/terms" element={<TermsAndConditionsView onBack={() => window.history.back()} />} />
