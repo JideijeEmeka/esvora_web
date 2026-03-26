@@ -43,6 +43,7 @@ import ReviewsView from './reviews_view'
 import LogoutWidget from '../components/logout_widget'
 import DeleteAccountWidget from '../components/delete_account_widget'
 import AuthController from '../controllers/auth_controller'
+import propertyController from '../controllers/property_controller'
 import { selectCurrentAccount } from '../redux/slices/accountSlice'
 import { getToken } from '../lib/localStorage'
 
@@ -358,9 +359,17 @@ const ProfileView = () => {
 									initialCity={account?.city ?? undefined}
 									isLoading={isLoadingLocation}
 									onSave={(state, city) => {
+										const previousState = (account?.state ?? '').toString().trim().toLowerCase()
+										const nextState = (state ?? '').toString().trim().toLowerCase()
+										const stateChanged = previousState !== nextState
 										authController.updateLocation(state, city, {
 											setLoading: setIsLoadingLocation,
 											onSuccess: () => {
+												if (stateChanged) {
+													propertyController
+														.getPropertiesInMyState({ forceRefetch: true, onError: () => {} })
+														.catch(() => {})
+												}
 												toast.success('Location updated successfully.')
 												setPrivacySubView(null)
 											},
