@@ -134,6 +134,8 @@ export function fromApiItem(raw) {
 		property_type: raw.property_type ?? null,
 		landlord,
 		reviews: Array.isArray(raw.reviews) ? raw.reviews : [],
+		/** Inspection windows from API (tenant scheduled tab / cards). Preserved for normalizeProperty. */
+		schedules: Array.isArray(raw.schedules) ? raw.schedules : [],
 		// Display helpers (for PropertyCardWidget etc.)
 		image,
 		price: priceFormatted,
