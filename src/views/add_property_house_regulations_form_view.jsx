@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import PropertyOwnerNavbar from '../components/property_owner_navbar'
 import Footer from '../components/footer'
 import { Plus, Minus } from 'lucide-react'
+import { saveAddListingDraft } from '../lib/localStorage'
 
 const AddPropertyHouseRegulationsFormView = () => {
 	const navigate = useNavigate()
@@ -38,8 +39,7 @@ const AddPropertyHouseRegulationsFormView = () => {
 	}
 
 	const handleSaveAndContinue = () => {
-		// Handle form submission
-		console.log('Regulations:', regulations)
+		saveAddListingDraft('rent', { regulations })
 		navigate('/property-owner/add-property/bedrooms')
 	}
 
@@ -100,7 +100,7 @@ const AddPropertyHouseRegulationsFormView = () => {
 						</button>
 
 						{/* Action Buttons */}
-						<div className='flex gap-4 mt-8'>
+						<div className='flex flex-col md:flex-row gap-4 mt-8'>
 							<button
 								type='button'
 								onClick={handleBack}
