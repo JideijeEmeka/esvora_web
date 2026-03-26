@@ -1,10 +1,16 @@
-import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useMemo } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import PropertyOwnerNavbar from '../components/property_owner_navbar'
 import Footer from '../components/footer'
+import { getAddPropertyDraftImages } from '../lib/localStorage'
 
 const AddPropertySummaryInfoView = () => {
 	const navigate = useNavigate()
+	const location = useLocation()
+	const draftImages = useMemo(() => getAddPropertyDraftImages(), [])
+	const routeImages = Array.isArray(location.state?.images) ? location.state.images.filter(Boolean) : []
+	const routeImageFiles = Array.isArray(location.state?.imageFiles) ? location.state.imageFiles.filter(Boolean) : []
+	const resolvedImages = routeImages.length > 0 ? routeImages : draftImages.map((d) => d.url).filter(Boolean)
 
 	// Sample data - in a real app, this would come from context/state management
 	const summaryData = {
@@ -45,7 +51,13 @@ const AddPropertySummaryInfoView = () => {
 	}
 
 	const handleContinue = () => {
-		navigate('/property-owner/add-property/agreement')
+		navigate('/property-owner/add-property/agreement', {
+			state: {
+				listingType: 'rent',
+				payload: summaryData,
+				imageFiles: routeImageFiles
+			}
+		})
 	}
 
 	const handleEditBasicInfo = () => {
@@ -199,7 +211,7 @@ const AddPropertySummaryInfoView = () => {
 						<div>
 							<h2 className='text-[20px] font-semibold text-gray-900 mb-4'>Images</h2>
 							<div className='grid grid-cols-3 gap-4 mb-4'>
-								{summaryData.images.map((image, index) => (
+								{(resolvedImages.length > 0 ? resolvedImages : summaryData.images).map((image, index) => (
 									<div key={index} className='aspect-square rounded-lg overflow-hidden'>
 										<img
 											src={image}
