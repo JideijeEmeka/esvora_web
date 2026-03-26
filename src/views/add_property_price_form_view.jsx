@@ -4,6 +4,7 @@ import PropertyOwnerNavbar from '../components/property_owner_navbar'
 import Footer from '../components/footer'
 import { X, ChevronDown, Plus, Minus } from 'lucide-react'
 import logo from '../assets/logo.png'
+import { saveAddListingDraft } from '../lib/localStorage'
 
 const RENTAGE_TYPES = [
 	{ value: 'monthly', label: 'Monthly' },
@@ -16,6 +17,7 @@ const AddPropertyPriceFormView = () => {
 	const navigate = useNavigate()
 	const [rentageType, setRentageType] = useState('')
 	const [rentageFee, setRentageFee] = useState('0.00')
+	const [errors, setErrors] = useState({})
 	const [fees, setFees] = useState([
 		{ id: 1, description: 'Rentage fee', amount: '0.00' }
 	])
@@ -42,19 +44,20 @@ const AddPropertyPriceFormView = () => {
 	}
 
 	const formatCurrency = (value) => {
-		// Remove non-numeric characters except decimal point
-		const numericValue = value.replace(/[^\d.]/g, '')
-		// Ensure only one decimal point
-		const parts = numericValue.split('.')
-		if (parts.length > 2) {
-			return parts[0] + '.' + parts.slice(1).join('')
-		}
-		return numericValue
+		const cleaned = String(value || '').replace(/,/g, '').replace(/[^\d.]/g, '')
+		const [rawInteger = '', ...rest] = cleaned.split('.')
+		const integer = rawInteger.replace(/^0+(?=\d)/, '') || '0'
+		const decimal = rest.join('').slice(0, 2)
+		const hasDot = cleaned.includes('.')
+		const formattedInteger = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+		if (hasDot) return `${formattedInteger}.${decimal}`
+		return formattedInteger
 	}
 
 	const handleRentageFeeChange = (e) => {
 		const formatted = formatCurrency(e.target.value)
 		setRentageFee(formatted)
+		setErrors((prev) => ({ ...prev, rentageFee: '' }))
 	}
 
 	const handleFeeAmountChange = (id, value) => {
@@ -71,12 +74,13 @@ const AddPropertyPriceFormView = () => {
 	}
 
 	const handleSaveAndContinue = () => {
-		// Handle form submission
-		console.log('Form data:', {
-			rentageType,
-			rentageFee,
-			fees
-		})
+		const nextErrors = {}
+		const parsedRentageFee = Number((rentageFee || '0').replace(/,/g, ''))
+		if (!rentageType) nextErrors.rentageType = 'Rentage type is required'
+		if (!parsedRentageFee || parsedRentageFee <= 0) nextErrors.rentageFee = 'Rentage fee must be greater than 0'
+		setErrors(nextErrors)
+		if (Object.keys(nextErrors).length > 0) return
+		saveAddListingDraft('rent', { price: { rentageType, rentageFee, fees } })
 		navigate('/property-owner/add-property/house-regulations')
 	}
 
@@ -114,8 +118,13 @@ const AddPropertyPriceFormView = () => {
 										<select
 											id='rentageType'
 											value={rentageType}
-											onChange={(e) => setRentageType(e.target.value)}
-											className='w-full px-4 py-3 pr-10 border border-gray-300 rounded-full text-[16px] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none cursor-pointer'
+											onChange={(e) => {
+												setRentageType(e.target.value)
+												setErrors((prev) => ({ ...prev, rentageType: '' }))
+											}}
+											className={`w-full px-4 py-3 pr-10 border rounded-full text-[16px] focus:outline-none focus:ring-2 appearance-none cursor-pointer ${
+												errors.rentageType ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-gray-300 focus:ring-primary/20 focus:border-primary'
+											}`}
 										>
 											<option value=''>Select type</option>
 											{RENTAGE_TYPES.map((type) => (
@@ -126,6 +135,7 @@ const AddPropertyPriceFormView = () => {
 										</select>
 										<ChevronDown className='absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none' />
 									</div>
+									{errors.rentageType ? <p className='mt-1 text-sm text-red-500'>{errors.rentageType}</p> : null}
 								</div>
 
 								{/* Rentage Fee */}
@@ -143,16 +153,19 @@ const AddPropertyPriceFormView = () => {
 											value={rentageFee}
 											onChange={handleRentageFeeChange}
 											placeholder='0.00'
-											className='w-full pl-16 pr-4 py-3 border border-gray-300 rounded-full text-[16px] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
+											className={`w-full pl-16 pr-4 py-3 border rounded-full text-[16px] focus:outline-none focus:ring-2 ${
+												errors.rentageFee ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-gray-300 focus:ring-primary/20 focus:border-primary'
+											}`}
 										/>
 									</div>
+									{errors.rentageFee ? <p className='mt-1 text-sm text-red-500'>{errors.rentageFee}</p> : null}
 								</div>
 							</div>
 
 							{/* Fees Table */}
 							<div className='mb-6'>
 								{/* Table Headers */}
-								<div className='grid grid-cols-[1fr_1fr_auto] gap-4 mb-3'>
+								<div className='hidden md:grid md:grid-cols-[1fr_1fr_auto] gap-4 mb-3'>
 									<div className='text-[14px] font-semibold text-gray-700'>Description</div>
 									<div className='text-[14px] font-semibold text-gray-700'>Amount</div>
 									<div></div>
@@ -161,7 +174,8 @@ const AddPropertyPriceFormView = () => {
 								{/* Fee Rows */}
 								<div className='space-y-3'>
 									{fees.map((fee) => (
-										<div key={fee.id} className='grid grid-cols-[1fr_1fr_auto] gap-4 items-center'>
+										<div key={fee.id} className='grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3 md:gap-4 items-start md:items-center'>
+											<div className='md:hidden text-[13px] font-semibold text-gray-700'>Description</div>
 											<input
 												type='text'
 												value={fee.description}
@@ -169,6 +183,7 @@ const AddPropertyPriceFormView = () => {
 												placeholder='Rentage fee'
 												className='px-4 py-3 border border-gray-300 rounded-full text-[16px] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
 											/>
+											<div className='md:hidden text-[13px] font-semibold text-gray-700'>Amount</div>
 											<input
 												type='text'
 												value={fee.amount}
@@ -176,14 +191,16 @@ const AddPropertyPriceFormView = () => {
 												placeholder='0.00'
 												className='px-4 py-3 border border-gray-300 rounded-full text-[16px] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
 											/>
-											<button
-												type='button'
-												onClick={() => handleRemoveFee(fee.id)}
-												disabled={fees.length === 1}
-												className='w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors'
-											>
-												<Minus className='w-5 h-5' />
-											</button>
+											<div className='flex md:block justify-end'>
+												<button
+													type='button'
+													onClick={() => handleRemoveFee(fee.id)}
+													disabled={fees.length === 1}
+													className='w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors'
+												>
+													<Minus className='w-5 h-5' />
+												</button>
+											</div>
 										</div>
 									))}
 								</div>
@@ -200,7 +217,7 @@ const AddPropertyPriceFormView = () => {
 							</div>
 
 							{/* Action Buttons */}
-							<div className='flex gap-4 mt-8'>
+							<div className='flex flex-col md:flex-row gap-4 mt-8'>
 								<button
 									type='button'
 									onClick={handleBack}
