@@ -1,3 +1,5 @@
+import { normalizeSchedules } from './scheduleUtils'
+
 /**
  * Normalize API property to the shape expected by PropertyCardWidget and list views.
  * Handles snake_case and camelCase from API.
@@ -40,6 +42,7 @@ export function normalizeProperty(p) {
 		bathrooms,
 		furnishing,
 		state,
+		schedules: normalizeSchedules(p.schedules ?? []),
 		available: p.status !== 'inactive'
 	}
 }
@@ -129,7 +132,8 @@ export function normalizePropertyDetails(p) {
 		},
 		regulations,
 		reviews,
-		relatedProperties: p.related_properties ?? []
+		relatedProperties: p.related_properties ?? [],
+		schedules: normalizeSchedules(p.schedules ?? [])
 	}
 }
 
@@ -205,6 +209,7 @@ export function normalizeMyRequest(r) {
 		totalAmount: typeof totalAmount === 'number' ? totalAmount : 0,
 		address: propObj.address ?? [propObj.city, propObj.state].filter(Boolean).join(', ') ?? '',
 		type: isShortlet ? 'reservation' : 'schedule',
+		schedules: normalizeSchedules(propObj.schedules ?? []),
 		raw: r
 	}
 }
