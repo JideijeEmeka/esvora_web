@@ -34,8 +34,6 @@ import RegulationsWidget from '../components/regulations_widget'
 import ReviewsWidget from '../components/reviews_widget'
 import SharePropertyWidget from '../components/share_property_widget'
 import AddToFavoriteWidget from '../components/add_to_favorite_widget'
-import ScheduleInspectionWidget from '../components/schedule_inspection_widget'
-import ScheduleInspectionSubmittedWidget from '../components/schedule_inspection_submitted_widget'
 import toast from 'react-hot-toast'
 import SendRequestWidget from '../components/send_request_widget'
 import { getToken } from '../lib/localStorage'
@@ -82,8 +80,6 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [isShareOpen, setIsShareOpen] = useState(false)
   const [isFavoriteOpen, setIsFavoriteOpen] = useState(false)
-  const [isScheduleOpen, setIsScheduleOpen] = useState(false)
-  const [isScheduleSubmittedOpen, setIsScheduleSubmittedOpen] = useState(false)
 	const [isSendRequestOpen, setIsSendRequestOpen] = useState(false)
 	const [isSendRequestSubmitting, setIsSendRequestSubmitting] = useState(false)
 	const [isRequestSubmittedOpen, setIsRequestSubmittedOpen] = useState(false)
@@ -381,6 +377,20 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
     amount: location.state?.requestAmount ?? property?.paymentInfo?.total,
   })
 
+  const openInspectionSchedules = () => {
+    const fromRequest = location.state?.requestPropertySchedules
+    const list =
+      Array.isArray(fromRequest) && fromRequest.length > 0
+        ? fromRequest
+        : (property?.schedules ?? [])
+    navigate(`/property-schedules/${id}`, {
+      state: {
+        schedules: list,
+        propertyTitle: property?.title ?? ''
+      }
+    })
+  }
+
   return (
     <>
       <Navbar />
@@ -392,18 +402,6 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
       <AddToFavoriteWidget
         isOpen={isFavoriteOpen}
         onClose={() => setIsFavoriteOpen(false)}
-        property={property}
-      />
-      <ScheduleInspectionWidget
-        isOpen={isScheduleOpen}
-        onClose={() => setIsScheduleOpen(false)}
-        onScheduleSubmitted={() => setIsScheduleSubmittedOpen(true)}
-        property={property}
-      />
-      <ScheduleInspectionSubmittedWidget
-        isOpen={isScheduleSubmittedOpen}
-        onClose={() => setIsScheduleSubmittedOpen(false)}
-        onCheckStatus={() => setIsScheduleSubmittedOpen(false)}
         property={property}
       />
       <SendRequestWidget
@@ -764,11 +762,11 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                     <button
                     className='w-30 h-12 rounded-full border border-gray-300 bg-gray-50
                       flex items-center justify-center hover:scale-105 hover:bg-primary/10 transition-colors'
-                    title='Calendar'
-                    onClick={() => setIsScheduleOpen(true)}
+                    title='Inspection schedules'
+                    onClick={openInspectionSchedules}
                     >
                     <Calendar className='w-4 h-4 text-gray-700' />
-                    <span className='text-[14px] font-medium text-gray-700 ml-2'>Schedule</span>
+                    <span className='text-[14px] font-medium text-gray-700 ml-2'>Inspection schedules</span>
                     </button>
                     <button
                   onClick={() => setIsFavoriteOpen(true)}
@@ -888,13 +886,22 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                   if (isApproved) {
                     const paymentState = buildPaymentNavigationState()
                     return (
-                      <button
-                        type='button'
-                        onClick={() => navigate(`/payment/${id}`, { state: paymentState })}
-                        className='w-full bg-primary text-white px-6 py-3 rounded-full hover:bg-primary/90 transition-colors font-medium text-[16px]'
-                      >
-                        Make payment
-                      </button>
+                      <div className='space-y-2'>
+                        <button
+                          type='button'
+                          onClick={() => navigate(`/payment/${id}`, { state: paymentState })}
+                          className='w-full bg-primary text-white px-6 py-3 rounded-full hover:bg-primary/90 transition-colors font-medium text-[16px]'
+                        >
+                          Make payment
+                        </button>
+                        <button
+                          type='button'
+                          onClick={openInspectionSchedules}
+                          className='w-full border-2 border-primary text-primary bg-white px-6 py-3 rounded-full hover:bg-primary/5 transition-colors font-medium text-[16px]'
+                        >
+                          Inspection schedules
+                        </button>
+                      </div>
                     )
                   }
                   const goToLogin = () => {
