@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import PropertyOwnerNavbar from '../components/property_owner_navbar'
 import Footer from '../components/footer'
 import { Wifi, Home, Droplets, Car, Zap, Pen, Plus, Minus } from 'lucide-react'
+import { saveAddListingDraft } from '../lib/localStorage'
 
 const AddShortletFeaturesView = () => {
 	const navigate = useNavigate()
@@ -33,8 +34,7 @@ const AddShortletFeaturesView = () => {
 	}
 
 	const handleSaveAndContinue = () => {
-		// Handle form submission
-		console.log('Selected features:', selectedFeatures)
+		saveAddListingDraft('shortlet', { features: selectedFeatures })
 		navigate('/property-owner/add-shortlet/price')
 	}
 
