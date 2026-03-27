@@ -2,8 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import propertyController from '../controllers/property_controller'
-import { selectMyRequests } from '../redux/slices/propertySlice'
-import { normalizeMyRequest } from '../lib/propertyUtils'
+import { selectMyRequests, selectProperties } from '../redux/slices/propertySlice'
+import { normalizeMyRequest, normalizeProperties } from '../lib/propertyUtils'
 import SortRequestsBottomSheet from '../components/sort_requests_bottom_sheet'
 import Loader from '../components/loader'
 import { SlidersHorizontal } from 'lucide-react'
@@ -12,6 +12,14 @@ const TABS = [
 	{ id: 'all', label: 'All' },
 	{ id: 'scheduled', label: 'Scheduled' },
 	{ id: 'reservation', label: 'Reservation' }
+]
+
+/** Matches Flutter sort_inspection_schedule_bottom_sheet: All, Rent, Sales, Shortlet */
+const INSPECTION_TYPE_FILTERS = [
+	{ id: 'all', label: 'All' },
+	{ id: 'rent', label: 'Rent' },
+	{ id: 'sales', label: 'Sales' },
+	{ id: 'shortlet', label: 'Shortlet' }
 ]
 
 function getStatusDisplay(status) {
@@ -28,7 +36,6 @@ function getStatusKey(status) {
 function filterAndSortRequests(list, sortBy) {
 	let arr = [...list]
 
-	// Filter by status if a status sort is selected
 	if (sortBy === 'status_pending') {
 		arr = arr.filter((r) => getStatusKey(r.status) === 'pending')
 	} else if (sortBy === 'status_approved') {
@@ -37,7 +44,6 @@ function filterAndSortRequests(list, sortBy) {
 		arr = arr.filter((r) => getStatusKey(r.status) === 'declined')
 	}
 
-	// Then apply date/price sort
 	if (sortBy === 'newest' || sortBy === 'oldest') {
 		arr.sort((a, b) => {
 			const aDate = a.createdAt ? new Date(a.createdAt).getTime() : 0
@@ -51,7 +57,6 @@ function filterAndSortRequests(list, sortBy) {
 			return sortBy === 'price_low' ? aVal - bVal : bVal - aVal
 		})
 	} else if (sortBy === 'status_pending' || sortBy === 'status_approved' || sortBy === 'status_declined') {
-		// Within status filter, sort by newest first
 		arr.sort((a, b) => {
 			const aDate = a.createdAt ? new Date(a.createdAt).getTime() : 0
 			const bDate = b.createdAt ? new Date(b.createdAt).getTime() : 0
@@ -61,13 +66,41 @@ function filterAndSortRequests(list, sortBy) {
 	return arr
 }
 
+const requestNavState = (req) => ({
+	requestStatus: req.status,
+	requestId: req.id,
+	requestAmount: req.totalAmount,
+	requestPropertySchedules: req.schedules ?? []
+})
+
 const MyRequestsView = () => {
 	const navigate = useNavigate()
 	const [isLoading, setIsLoading] = useState(true)
 	const [activeTab, setActiveTab] = useState('all')
 	const [sortBy, setSortBy] = useState('newest')
 	const [isSortOpen, setIsSortOpen] = useState(false)
+	const [inspectionTypeFilter, setInspectionTypeFilter] = useState('all')
 	const myRequestsRaw = useSelector(selectMyRequests)
+	const apiProperties = useSelector(selectProperties)
+
+	const allProperties = useMemo(
+		() => normalizeProperties(apiProperties) ?? [],
+		[apiProperties]
+	)
+
+	const scheduledProperties = useMemo(
+		() => allProperties.filter((p) => Array.isArray(p.schedules) && p.schedules.length > 0),
+		[allProperties]
+	)
+
+	const scheduledForTab = useMemo(() => {
+		if (inspectionTypeFilter === 'all') return scheduledProperties
+		const needle = inspectionTypeFilter.toLowerCase()
+		return scheduledProperties.filter((p) => {
+			const t = (p.propertyType ?? '').toString().trim().toLowerCase()
+			return t === needle || t.includes(needle)
+		})
+	}, [scheduledProperties, inspectionTypeFilter])
 
 	const allRequests = useMemo(
 		() => (myRequestsRaw ?? []).map(normalizeMyRequest).filter(Boolean),
@@ -76,19 +109,25 @@ const MyRequestsView = () => {
 
 	const filteredRequests = useMemo(() => {
 		let list = allRequests
-		if (activeTab === 'scheduled') {
-			list = list.filter((r) => r.type === 'schedule')
-		} else if (activeTab === 'reservation') {
+		if (activeTab === 'reservation') {
 			list = list.filter((r) => r.type === 'reservation')
 		}
 		return filterAndSortRequests(list, sortBy)
 	}, [allRequests, activeTab, sortBy])
 
 	useEffect(() => {
-		setIsLoading(true)
+		let pending = 2
+		const done = () => {
+			pending -= 1
+			if (pending <= 0) setIsLoading(false)
+		}
 		propertyController.listMyRequests({
-			onSuccess: () => setIsLoading(false),
-			onError: () => setIsLoading(false)
+			onSuccess: done,
+			onError: done
+		})
+		propertyController.getAllProperties({
+			onSuccess: done,
+			onError: done
 		})
 	}, [])
 
@@ -96,11 +135,7 @@ const MyRequestsView = () => {
 		if (e?.target?.closest('button')) return
 		if (req?.propertyId) {
 			navigate(`/property-details/${req.propertyId}`, {
-				state: {
-					requestStatus: req.status,
-					requestId: req.id,
-					requestAmount: req.totalAmount
-				}
+				state: requestNavState(req)
 			})
 		}
 	}
@@ -109,13 +144,18 @@ const MyRequestsView = () => {
 		e?.stopPropagation?.()
 		if (req?.propertyId) {
 			navigate(`/property-details/${req.propertyId}`, {
-				state: {
-					requestStatus: req.status,
-					requestId: req.id,
-					requestAmount: req.totalAmount
-				}
+				state: requestNavState(req)
 			})
 		}
+	}
+
+	const goToPropertySchedules = (property) => {
+		navigate(`/property-schedules/${property.id}`, {
+			state: {
+				schedules: property.schedules ?? [],
+				propertyTitle: property.description ?? property.title ?? ''
+			}
+		})
 	}
 
 	const getSortLabel = () => {
@@ -130,6 +170,9 @@ const MyRequestsView = () => {
 		}
 	}
 
+	const showRequestSort = activeTab !== 'scheduled' && !isLoading && allRequests.length > 0
+	const isScheduledTab = activeTab === 'scheduled'
+
 	return (
 		<div className="pt-30 pb-10 px-6 md:px-16 lg:px-20 min-h-screen flex flex-col bg-white">
 			<div className="max-w-4xl mx-auto w-full">
@@ -137,8 +180,7 @@ const MyRequestsView = () => {
 					My Requests
 				</h1>
 
-				{/* Tabs: All, Scheduled, Reservation */}
-				<div className="flex items-center justify-between gap-4 mb-6">
+				<div className="flex flex-wrap items-center justify-between gap-4 mb-6">
 					<div className="flex bg-gray-100 rounded-full p-1 w-fit">
 						{TABS.map((tab) => (
 							<button
@@ -153,11 +195,28 @@ const MyRequestsView = () => {
 							</button>
 						))}
 					</div>
-					{!isLoading && allRequests.length > 0 && (
+					{isScheduledTab && scheduledForTab.length > 0 && (
+						<div className="flex items-center gap-2">
+							<SlidersHorizontal className="w-4 h-4 text-gray-600" />
+							<select
+								value={inspectionTypeFilter}
+								onChange={(e) => setInspectionTypeFilter(e.target.value)}
+								className="text-[14px] font-medium border border-gray-300 rounded-full px-4 py-2 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/20"
+								aria-label="Filter inspection schedules by property type"
+							>
+								{INSPECTION_TYPE_FILTERS.map((o) => (
+									<option key={o.id} value={o.id}>
+										{o.label}
+									</option>
+								))}
+							</select>
+						</div>
+					)}
+					{showRequestSort && (
 						<button
 							type="button"
 							onClick={() => setIsSortOpen(true)}
-							className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-[14px] font-medium transition-colors"
+							className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-[14px] font-medium transition-colors ml-auto"
 						>
 							<SlidersHorizontal className="w-4 h-4" />
 							{getSortLabel()}
@@ -172,12 +231,54 @@ const MyRequestsView = () => {
 					onChange={setSortBy}
 				/>
 
-				{/* Request list */}
 				<div className="space-y-4">
 					{isLoading ? (
 						<div className="flex justify-center py-12">
 							<Loader />
 						</div>
+					) : isScheduledTab ? (
+						<>
+							<h2 className="text-[20px] font-semibold text-gray-900 mb-2">Inspection schedule</h2>
+							{scheduledForTab.length === 0 ? (
+								<p className="text-gray-600 py-8">
+									No properties with inspection schedules
+									{inspectionTypeFilter !== 'all' ? ` (${inspectionTypeFilter})` : ''}.
+								</p>
+							) : (
+								<div className="space-y-4">
+									{scheduledForTab.map((property) => {
+										const scheduleCount = property.schedules?.length ?? 0
+										const img = property.image ?? property.images?.[0]
+										return (
+											<button
+												key={property.id}
+												type="button"
+												onClick={() => goToPropertySchedules(property)}
+												className="w-full text-left rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+											>
+												<div className="px-4 pt-4 pb-2">
+													<span className="inline-block px-3 py-1.5 rounded-full text-[14px] font-semibold bg-primary/15 text-primary">
+														{scheduleCount} {scheduleCount === 1 ? 'schedule' : 'schedules'}
+													</span>
+												</div>
+												<div className="flex gap-3 px-4 pb-4 pt-1">
+													<div className="w-20 h-20 shrink-0 rounded-lg overflow-hidden bg-gray-100">
+														{img ? (
+															<img src={img} alt="" className="w-full h-full object-cover" />
+														) : null}
+													</div>
+													<div className="min-w-0 flex-1">
+														<p className="text-[18px] font-semibold text-gray-900">{property.price}</p>
+														<p className="text-[14px] text-gray-700 line-clamp-2 mt-1">{property.description}</p>
+														<p className="text-[13px] text-gray-500 mt-1 line-clamp-1">{property.location}</p>
+													</div>
+												</div>
+											</button>
+										)
+									})}
+								</div>
+							)}
+						</>
 					) : filteredRequests.length === 0 ? (
 						<p className="text-gray-600 py-8">
 							{activeTab === 'all'
