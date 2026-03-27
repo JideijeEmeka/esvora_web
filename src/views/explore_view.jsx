@@ -24,6 +24,7 @@ const ExploreView = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [isLoadingProperties, setIsLoadingProperties] = useState(false)
   const apiProperties = useSelector(selectProperties)
+  const [myStateProperties, setMyStateProperties] = useState([])
 
   useEffect(() => {
     // Discover: load properties for all visitors (public)
@@ -32,6 +33,9 @@ const ExploreView = () => {
       .catch(() => {})
 
     if (!getToken()) return
+    propertyController
+      .getPropertiesInMyState({ onSuccess: setMyStateProperties, onError: () => {} })
+      .catch(() => {})
     store.dispatch(authApi.endpoints.getProfile.initiate()).then((res) => {
       if (res.error) return
       const data = res.data
@@ -50,13 +54,15 @@ const ExploreView = () => {
   const [activeFilters, setActiveFilters] = useState(null)
   const [isFilterLoading, setIsFilterLoading] = useState(false)
   const firstRowRef = useRef(null)
+  const myStateRowRef = useRef(null)
   const secondRowRef = useRef(null)
-  const thirdRowRef = useRef(null)
   const categoryRef = useRef(null)
   const filteredResultsRef = useRef(null)
   const navigate = useNavigate()
 
   const allProperties = useMemo(() => normalizeProperties(apiProperties), [apiProperties])
+  const normalizedMyStateProperties = useMemo(() => normalizeProperties(myStateProperties), [myStateProperties])
+  const hasLoggedInUser = Boolean(getToken())
 
   // Map filter propertyType to API slug (backend uses rent/shortlet/sales)
   const PROPERTY_TYPE_TO_SLUG = {
@@ -584,6 +590,40 @@ const ExploreView = () => {
           )}
         </div>
 
+        {/* My State Property Listings (logged-in only) */}
+        {hasLoggedInUser && normalizedMyStateProperties.length > 0 && (
+          <div className='mb-12'>
+            <div className='flex items-center justify-between mb-6'>
+              <h2 className='text-[24px] font-semibold text-gray-900'>Properties in my state</h2>
+              <div className='flex items-center gap-2'>
+                <button 
+                  onClick={() => scrollProperties(myStateRowRef, 'left')}
+                  className='w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors'
+                >
+                  <ChevronLeft className='w-5 h-5 text-gray-700' />
+                </button>
+                <button 
+                  onClick={() => scrollProperties(myStateRowRef, 'right')}
+                  className='w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors'
+                >
+                  <ChevronRight className='w-5 h-5 text-gray-700' />
+                </button>
+              </div>
+            </div>
+            <div ref={myStateRowRef} className='flex gap-4 overflow-x-auto pb-4 scrollbar-hide'>
+              {normalizedMyStateProperties.map((property) => (
+                <PropertyCardWidget 
+                  key={`my-state-${property.id}`}
+                  property={property}
+                  isFavorite={favorites.has(property.id)}
+                  onFavoriteToggle={toggleFavorite}
+                  onViewDetails={() => navigate(`/property-details/${property.id}`)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Second Row of Property Listings */}
         {categoryFilteredProperties.length > 0 && (
         <div className='mb-12'>
@@ -608,40 +648,6 @@ const ExploreView = () => {
               {categoryFilteredProperties.map((property) => (
                 <PropertyCardWidget 
                   key={`second-${property.id}`} 
-                  property={property}
-                  isFavorite={favorites.has(property.id)}
-                  onFavoriteToggle={toggleFavorite}
-                  onViewDetails={() => navigate(`/property-details/${property.id}`)}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Third Row of Property Listings */}
-        {categoryFilteredProperties.length > 0 && (
-        <div className='mb-12'>
-            <div className='flex items-center justify-between mb-6'>
-              <h2 className='text-[24px] font-semibold text-gray-900'>Popular near your location</h2>
-              <div className='flex items-center gap-2'>
-                <button 
-                  onClick={() => scrollProperties(thirdRowRef, 'left')}
-                  className='w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors'
-                >
-                  <ChevronLeft className='w-5 h-5 text-gray-700' />
-                </button>
-                <button 
-                  onClick={() => scrollProperties(thirdRowRef, 'right')}
-                  className='w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors'
-                >
-                  <ChevronRight className='w-5 h-5 text-gray-700' />
-                </button>
-              </div>
-            </div>
-            <div ref={thirdRowRef} className='flex gap-4 overflow-x-auto pb-4 scrollbar-hide'>
-              {categoryFilteredProperties.map((property) => (
-                <PropertyCardWidget 
-                  key={`third-${property.id}`} 
                   property={property}
                   isFavorite={favorites.has(property.id)}
                   onFavoriteToggle={toggleFavorite}
