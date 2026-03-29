@@ -103,6 +103,8 @@ export function normalizePropertyDetails(p) {
 		city: p.city ?? '',
 		address: p.address ?? '',
 		postal_code: p.postal_code ?? '',
+		latitude: p.latitude ?? p.lat ?? null,
+		longitude: p.longitude ?? p.lng ?? p.lon ?? null,
 		price: priceFormatted,
 		priceNGN: typeof priceData.total === 'number' ? priceData.total : 0,
 		images,
