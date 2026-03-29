@@ -6,6 +6,7 @@ import Footer from '../components/footer'
 import PropertyCardWidget from '../components/property_card_widget'
 import Loader from '../components/loader'
 import { Search, Filter, ChevronLeft, ChevronRight, X, MapIcon } from 'lucide-react'
+import MapModal from '../components/map_modal'
 import { getPropertyTypeLabel, getStateLabel, getFurnishingLabel } from '../lib/constants'
 import { useNavigate } from 'react-router-dom'
 import { store } from '../redux/store'
@@ -51,6 +52,7 @@ const ExploreView = () => {
   const [favorites, setFavorites] = useState(new Set())
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [isMapOpen, setIsMapOpen] = useState(false)
   const [activeFilters, setActiveFilters] = useState(null)
   const [isFilterLoading, setIsFilterLoading] = useState(false)
   const firstRowRef = useRef(null)
@@ -330,10 +332,14 @@ const ExploreView = () => {
                 <Filter className='w-5 h-5 max-md:w-4 max-md:h-4 text-gray-700' />
                 <span className='text-[16px] max-md:text-[14px] font-medium text-gray-700'>Filter</span>
                 </button>
-                {/* <button className='flex items-center gap-2 px-4 py-3 max-md:px-3 max-md:py-2.5 max-md:gap-1.5 bg-white/95 backdrop-blur-sm border border-gray-300 rounded-full hover:bg-white transition-colors'>
-                <MapIcon className='w-5 h-5 max-md:w-4 max-md:h-4 text-gray-700' />
-                <span className='text-[16px] max-md:text-[14px] font-medium text-gray-700'>Map</span>
-                </button> */}
+                <button
+                  onClick={() => setIsMapOpen(true)}
+                  className='flex items-center gap-2 px-4 py-3 max-md:px-3 max-md:py-2.5 max-md:gap-1.5 bg-white/95
+                    backdrop-blur-sm border border-gray-300 rounded-full hover:bg-white transition-colors cursor-pointer'
+                >
+                  <MapIcon className='w-5 h-5 max-md:w-4 max-md:h-4 text-gray-700' />
+                  <span className='text-[16px] max-md:text-[14px] font-medium text-gray-700'>Map</span>
+                </button>
                 <button
                   type='button'
                   onClick={handleSearchClick}
@@ -676,6 +682,7 @@ const ExploreView = () => {
       </div>
 
       <Footer />
+      <MapModal isOpen={isMapOpen} onClose={() => setIsMapOpen(false)} />
     </>
   )
 }
