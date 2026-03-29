@@ -22,7 +22,6 @@ import {
   Droplets,
   Car,
   CheckCircle,
-  Locate,
   Waves,
   Dumbbell
 } from 'lucide-react'
@@ -583,8 +582,7 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                       </div>
                     </div>
                     <Divider width='full' />
-                    {/* Map - commented out */}
-                    {/* <LocationWidget property={property} /> */}
+                    <LocationWidget property={property} />
                     <div className='mt-8'>
                       <PaymentWidget paymentInfo={property.paymentInfo} />
                       <div className='py-8'>
@@ -686,10 +684,10 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                 )
               })()}
 
-              {/* Location Tab - map commented out */}
-              {/* {activeTab === 'location' && (
+              {/* Location Tab */}
+              {activeTab === 'location' && (
                 <LocationWidget property={property} />
-              )} */}
+              )}
 
               {/* Payment Info Tab */}
               {activeTab === 'payment' && (
@@ -787,35 +785,6 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                 </button>
               </div>
             <div className='bg-gray-50 border border-gray-200 rounded-2xl p-6 shadow-sm'>
-
-              {/* Location Box */}
-              <div className='mb-4 pb-4 border-b border-gray-200'>
-                <div className='flex items-center justify-start mb-2'>
-                    <Locate className='w-4 h-4 text-gray-700' />
-                    <div className='flex flex-col items-start ml-2'>
-                        <h3 className='text-[18px] font-semibold text-gray-900'>Location</h3>
-                        <p className='text-[14px] text-gray-500 mb-4'>Based on custom preference</p>
-                    </div>
-                </div>
-                <div className='space-y-2 text-[14px]'>
-                  <div className='flex justify-between'>
-                    <span className='text-gray-600'>Country:</span>
-                    <span className='text-gray-900 font-medium'>Nigeria</span>
-                  </div>
-                  <div className='flex justify-between'>
-                    <span className='text-gray-600'>City:</span>
-                    <span className='text-gray-900 font-medium'>Lagos</span>
-                  </div>
-                  <div className='flex justify-between'>
-                    <span className='text-gray-600'>State:</span>
-                    <span className='text-gray-900 font-medium'>Lagos</span>
-                  </div>
-                  <div className='flex justify-between'>
-                    <span className='text-gray-600'>Related property:</span>
-                    <span className='text-gray-900 font-medium'>25</span>
-                  </div>
-                </div>
-              </div>
 
               {/* Landlord Information */}
               <div className='mb-1'>
