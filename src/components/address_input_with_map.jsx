@@ -1,73 +1,89 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Loader2, MapPin, Search, X } from 'lucide-react'
-import { kGooglePlacesApiKey } from '../lib/constants'
+import React, { useEffect, useRef, useState, useCallback } from 'react'
+import { useSelector } from 'react-redux'
+import { Loader2, MapPin, Search, X, LocateFixed } from 'lucide-react'
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+import { selectDeviceLocationSnapshot } from '../redux/slices/deviceLocationSlice'
 
-const GOOGLE_MAPS_SCRIPT_ID = 'esvora-google-maps-script'
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
+import markerIcon from 'leaflet/dist/images/marker-icon.png'
+import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 
-const loadGoogleMapsScript = (apiKey) => {
-	if (typeof window === 'undefined') return Promise.reject(new Error('No window'))
-	if (window.google?.maps?.places) return Promise.resolve(window.google)
+delete L.Icon.Default.prototype._getIconUrl
+L.Icon.Default.mergeOptions({
+	iconRetinaUrl: markerIcon2x,
+	iconUrl: markerIcon,
+	shadowUrl: markerShadow,
+})
 
-	return new Promise((resolve, reject) => {
-		const existing = document.getElementById(GOOGLE_MAPS_SCRIPT_ID)
-		if (existing) {
-			existing.addEventListener('load', () => resolve(window.google), { once: true })
-			existing.addEventListener('error', () => reject(new Error('Failed to load Google Maps script')), { once: true })
-			return
-		}
+const NOMINATIM_BASE = 'https://nominatim.openstreetmap.org'
+const NIGERIA_CENTER = [9.082, 8.6753]
 
-		const script = document.createElement('script')
-		script.id = GOOGLE_MAPS_SCRIPT_ID
-		script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places`
-		script.async = true
-		script.defer = true
-		script.onload = () => resolve(window.google)
-		script.onerror = () => reject(new Error('Failed to load Google Maps script'))
-		document.head.appendChild(script)
-	})
-}
-
-const extractPostalCodeFromComponents = (components) => {
-	if (!Array.isArray(components)) return ''
-	for (const component of components) {
-		const types = Array.isArray(component?.types) ? component.types : []
-		if (types.includes('postal_code')) {
-			return String(component.long_name || component.short_name || '')
-		}
+async function searchAddress(query) {
+	if (!query || query.trim().length < 2) return []
+	try {
+		const res = await fetch(
+			`${NOMINATIM_BASE}/search?q=${encodeURIComponent(query.trim())}&format=json&addressdetails=1&limit=8&countrycodes=ng`
+		)
+		if (!res.ok) return []
+		return await res.json()
+	} catch {
+		return []
 	}
-	return ''
 }
 
-const initialCenter = { lat: 9.082, lng: 8.6753 }
+async function reverseGeocode(lat, lng) {
+	try {
+		const res = await fetch(
+			`${NOMINATIM_BASE}/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`
+		)
+		if (!res.ok) return null
+		return await res.json()
+	} catch {
+		return null
+	}
+}
 
-const AddressInputWithMapInner = ({
+function extractPostalCode(addressDetails) {
+	return addressDetails?.postcode || ''
+}
+
+function UpdateMapView({ position }) {
+	const map = useMap()
+	useEffect(() => {
+		if (position) map.setView(position, 16)
+	}, [position, map])
+	return null
+}
+
+function MapClickHandler({ onMapClick }) {
+	useMapEvents({
+		click(e) {
+			onMapClick([e.latlng.lat, e.latlng.lng])
+		},
+	})
+	return null
+}
+
+const AddressInputWithMap = ({
 	value,
 	onChangeAddress,
 	onChangePostalCode,
 	onLocationChange,
 	placeholder = 'Enter address',
-	apiKey
 }) => {
-	const [apiStatus, setApiStatus] = useState('idle')
-	const mapContainerRef = useRef(null)
-	const mapRef = useRef(null)
-	const markerRef = useRef(null)
-	const mapClickListenerRef = useRef(null)
-	const placesServiceRef = useRef(null)
-	const autocompleteServiceRef = useRef(null)
-	const placesServiceContainerRef = useRef(null)
+	const deviceLocation = useSelector(selectDeviceLocationSnapshot)
 	const [predictions, setPredictions] = useState([])
 	const [isLoadingPredictions, setIsLoadingPredictions] = useState(false)
 	const [isMapOpen, setIsMapOpen] = useState(false)
-	const [isResolvingMapAddress, setIsResolvingMapAddress] = useState(false)
+	const [isResolvingAddress, setIsResolvingAddress] = useState(false)
 	const [mapSearch, setMapSearch] = useState('')
 	const [mapSearchResults, setMapSearchResults] = useState([])
 	const [isSearchingMap, setIsSearchingMap] = useState(false)
+	const [selectedPosition, setSelectedPosition] = useState(null)
 	const debounceRef = useRef(null)
 	const mapDebounceRef = useRef(null)
-	const [mapCenter, setMapCenter] = useState(initialCenter)
-	const [selectedPosition, setSelectedPosition] = useState(initialCenter)
-	const [mapZoom, setMapZoom] = useState(14)
 
 	useEffect(() => {
 		return () => {
@@ -76,148 +92,40 @@ const AddressInputWithMapInner = ({
 		}
 	}, [])
 
-	const ensurePlacesServices = async () => {
-		if (!apiKey) return false
-		try {
-			setApiStatus('loading')
-			await loadGoogleMapsScript(apiKey)
-			if (!autocompleteServiceRef.current) {
-				autocompleteServiceRef.current = new window.google.maps.places.AutocompleteService()
-			}
-			if (!placesServiceContainerRef.current) {
-				placesServiceContainerRef.current = document.createElement('div')
-			}
-			if (!placesServiceRef.current) {
-				placesServiceRef.current = new window.google.maps.places.PlacesService(placesServiceContainerRef.current)
-			}
-			setApiStatus('loaded')
-			return true
-		} catch (_) {
-			setApiStatus('failed')
-			return false
+	const getInitialCenter = useCallback(() => {
+		if (selectedPosition) return selectedPosition
+		if (deviceLocation?.latitude && deviceLocation?.longitude) {
+			return [deviceLocation.latitude, deviceLocation.longitude]
 		}
-	}
-
-	const initializeMap = async () => {
-		const ok = await ensurePlacesServices()
-		if (!ok || !mapContainerRef.current) return
-		const center = selectedPosition || initialCenter
-		mapRef.current = new window.google.maps.Map(mapContainerRef.current, {
-			center,
-			zoom: mapZoom,
-			streetViewControl: false,
-			mapTypeControl: false,
-			fullscreenControl: false
-		})
-		markerRef.current = new window.google.maps.Marker({
-			map: mapRef.current,
-			position: center
-		})
-		if (mapClickListenerRef.current) {
-			window.google.maps.event.removeListener(mapClickListenerRef.current)
-		}
-		mapClickListenerRef.current = mapRef.current.addListener('click', (event) => {
-			const lat = event?.latLng?.lat?.()
-			const lng = event?.latLng?.lng?.()
-			if (typeof lat !== 'number' || typeof lng !== 'number') return
-			const next = { lat, lng }
-			setSelectedPosition(next)
-			setMapCenter(next)
-			markerRef.current?.setPosition(next)
-		})
-		// Keep PlacesService tied to this map instance.
-		placesServiceRef.current = new window.google.maps.places.PlacesService(mapRef.current)
-	}
-
-	useEffect(() => {
-		if (!isMapOpen) return
-		initializeMap()
-		return () => {
-			if (mapClickListenerRef.current && window.google?.maps?.event) {
-				window.google.maps.event.removeListener(mapClickListenerRef.current)
-				mapClickListenerRef.current = null
-			}
-		}
-	}, [isMapOpen])
-
-	const fetchAutocompletePredictions = async (query, setTarget, setLoading) => {
-		const ok = await ensurePlacesServices()
-		if (!ok || query.trim().length < 2) {
-			setTarget([])
-			setLoading(false)
-			return
-		}
-		if (!placesServiceContainerRef.current) {
-			placesServiceContainerRef.current = document.createElement('div')
-		}
-		setLoading(true)
-		autocompleteServiceRef.current.getPlacePredictions(
-			{
-				input: query.trim(),
-				types: ['address']
-			},
-			(results, status) => {
-				if (
-					status !== window.google.maps.places.PlacesServiceStatus.OK ||
-					!Array.isArray(results)
-				) {
-					setTarget([])
-					setLoading(false)
-					return
-				}
-				setTarget(results.slice(0, 10))
-				setLoading(false)
-			}
-		)
-	}
+		return NIGERIA_CENTER
+	}, [selectedPosition, deviceLocation])
 
 	const handleAddressInputChange = (nextValue) => {
 		onChangeAddress(nextValue)
 		if (debounceRef.current) clearTimeout(debounceRef.current)
-		debounceRef.current = setTimeout(() => {
-			fetchAutocompletePredictions(nextValue, setPredictions, setIsLoadingPredictions)
-		}, 350)
-	}
-
-	const fetchPlaceDetails = (placeId) =>
-		new Promise((resolve) => {
-			if (!placesServiceRef.current || !placeId) {
-				resolve(null)
+		debounceRef.current = setTimeout(async () => {
+			if (nextValue.trim().length < 2) {
+				setPredictions([])
+				setIsLoadingPredictions(false)
 				return
 			}
-			placesServiceRef.current.getDetails(
-				{
-					placeId,
-					fields: ['formatted_address', 'address_components', 'geometry']
-				},
-				(place, status) => {
-					if (
-						status !== window.google.maps.places.PlacesServiceStatus.OK ||
-						!place?.geometry?.location
-					) {
-						resolve(null)
-						return
-					}
-					resolve({
-						address: String(place.formatted_address || ''),
-						postalCode: extractPostalCodeFromComponents(place.address_components),
-						latitude: place.geometry.location.lat(),
-						longitude: place.geometry.location.lng()
-					})
-				}
-			)
-		})
+			setIsLoadingPredictions(true)
+			const results = await searchAddress(nextValue)
+			setPredictions(results)
+			setIsLoadingPredictions(false)
+		}, 400)
+	}
 
-	const handleSelectPrediction = async (prediction) => {
-		const details = await fetchPlaceDetails(prediction?.place_id)
-		if (details) {
-			if (details.address) onChangeAddress(details.address)
-			if (details.postalCode) onChangePostalCode?.(details.postalCode)
-			if (details.latitude != null && details.longitude != null) {
-				onLocationChange?.({ latitude: details.latitude, longitude: details.longitude })
-			}
-		} else {
-			onChangeAddress(String(prediction?.description || ''))
+	const handleSelectPrediction = (item) => {
+		const address = item.display_name || ''
+		onChangeAddress(address)
+		const postalCode = extractPostalCode(item.address)
+		if (postalCode) onChangePostalCode?.(postalCode)
+		if (item.lat && item.lon) {
+			const lat = parseFloat(item.lat)
+			const lng = parseFloat(item.lon)
+			onLocationChange?.({ latitude: lat, longitude: lng })
+			setSelectedPosition([lat, lng])
 		}
 		setPredictions([])
 	}
@@ -226,57 +134,65 @@ const AddressInputWithMapInner = ({
 		setIsMapOpen(true)
 		setMapSearch(value || '')
 		setMapSearchResults([])
-		setMapZoom(14)
 	}
 
 	const handleMapSearchChange = (nextValue) => {
 		setMapSearch(nextValue)
 		if (mapDebounceRef.current) clearTimeout(mapDebounceRef.current)
-		mapDebounceRef.current = setTimeout(() => {
-			fetchAutocompletePredictions(nextValue, setMapSearchResults, setIsSearchingMap)
-		}, 350)
+		mapDebounceRef.current = setTimeout(async () => {
+			if (nextValue.trim().length < 2) {
+				setMapSearchResults([])
+				setIsSearchingMap(false)
+				return
+			}
+			setIsSearchingMap(true)
+			const results = await searchAddress(nextValue)
+			setMapSearchResults(results)
+			setIsSearchingMap(false)
+		}, 400)
 	}
 
-	const handleSelectMapResult = async (prediction) => {
-		const details = await fetchPlaceDetails(prediction?.place_id)
-		if (!details || details.latitude == null || details.longitude == null) return
-		const next = { lat: details.latitude, lng: details.longitude }
-		setSelectedPosition(next)
-		setMapCenter(next)
-		setMapZoom(16)
-		mapRef.current?.setCenter(next)
-		mapRef.current?.setZoom(16)
-		markerRef.current?.setPosition(next)
-		setMapSearch(details.address || prediction.description || '')
+	const handleSelectMapResult = (item) => {
+		if (!item.lat || !item.lon) return
+		const lat = parseFloat(item.lat)
+		const lng = parseFloat(item.lon)
+		setSelectedPosition([lat, lng])
+		setMapSearch(item.display_name || '')
 		setMapSearchResults([])
 	}
 
+	const handleMapClick = (pos) => {
+		setSelectedPosition(pos)
+	}
+
+	const handleLocateMe = () => {
+		if (!navigator.geolocation) return
+		navigator.geolocation.getCurrentPosition(
+			(loc) => setSelectedPosition([loc.coords.latitude, loc.coords.longitude]),
+			() => {},
+			{ enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+		)
+	}
+
 	const handleUseMapLocation = async () => {
-		if (!selectedPosition || !window.google?.maps?.Geocoder) {
+		if (!selectedPosition) {
 			setIsMapOpen(false)
 			return
 		}
-		setIsResolvingMapAddress(true)
+		setIsResolvingAddress(true)
 		try {
-			const geocoder = new window.google.maps.Geocoder()
-			const results = await geocoder.geocode({ location: selectedPosition })
-			const first = Array.isArray(results?.results) ? results.results[0] : null
-			if (first?.formatted_address) onChangeAddress(first.formatted_address)
-
-			let postalCode = ''
-			for (const result of results?.results || []) {
-				postalCode = extractPostalCodeFromComponents(result?.address_components)
-				if (postalCode) break
-			}
+			const result = await reverseGeocode(selectedPosition[0], selectedPosition[1])
+			if (result?.display_name) onChangeAddress(result.display_name)
+			const postalCode = extractPostalCode(result?.address)
 			if (postalCode) onChangePostalCode?.(postalCode)
 			onLocationChange?.({
-				latitude: selectedPosition.lat,
-				longitude: selectedPosition.lng
+				latitude: selectedPosition[0],
+				longitude: selectedPosition[1],
 			})
-		} catch (_) {
-			setPredictions([])
+		} catch {
+			// Silently fail
 		} finally {
-			setIsResolvingMapAddress(false)
+			setIsResolvingAddress(false)
 			setIsMapOpen(false)
 		}
 	}
@@ -317,17 +233,16 @@ const AddressInputWithMapInner = ({
 							onClick={() => handleSelectPrediction(item)}
 							className='w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0'
 						>
-							<div className='text-[14px] text-gray-900'>{item.structured_formatting?.main_text || item.description}</div>
-							<div className='text-[12px] text-gray-500'>{item.structured_formatting?.secondary_text || ''}</div>
+							<div className='text-[14px] text-gray-900'>{item.display_name}</div>
 						</button>
 					))}
 				</div>
 			)}
 
 			{isMapOpen && (
-				<div className='fixed inset-0 z-100 bg-black/40 flex items-center justify-center p-4'>
-					<div className='w-full max-w-3xl bg-white rounded-2xl overflow-hidden shadow-xl'>
-						<div className='px-4 py-3 border-b border-gray-200 flex items-center justify-between'>
+				<div className='fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4'>
+					<div className='w-full max-w-3xl bg-white rounded-2xl overflow-hidden shadow-xl flex flex-col max-h-[90vh]'>
+						<div className='px-4 py-3 border-b border-gray-200 flex items-center justify-between shrink-0'>
 							<h3 className='text-[18px] font-semibold text-gray-900'>Pick location on map</h3>
 							<button
 								type='button'
@@ -338,7 +253,7 @@ const AddressInputWithMapInner = ({
 							</button>
 						</div>
 
-						<div className='p-4'>
+						<div className='p-4 flex-1 overflow-y-auto'>
 							<div className='relative mb-3'>
 								<Search className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400' />
 								<input
@@ -366,38 +281,53 @@ const AddressInputWithMapInner = ({
 											onClick={() => handleSelectMapResult(item)}
 											className='w-full text-left px-3 py-2 hover:bg-gray-50 border-b border-gray-100 last:border-b-0'
 										>
-											<div className='text-[13px] text-gray-900'>{item.description}</div>
+											<div className='text-[13px] text-gray-900'>{item.display_name}</div>
 										</button>
 									))}
 								</div>
 							)}
 
 							<div className='relative w-full h-[360px] rounded-xl border border-gray-200 overflow-hidden'>
-								<div ref={mapContainerRef} className='w-full h-full' />
-								{String(apiStatus).toLowerCase().includes('loading') && (
-									<div className='absolute inset-0 pointer-events-none flex items-center justify-center text-sm text-gray-500 bg-white/50'>
-										<Loader2 className='w-4 h-4 animate-spin mr-2' />
-										Loading map...
-									</div>
-								)}
-								{String(apiStatus).toLowerCase().includes('fail') && (
-									<div className='absolute inset-0 pointer-events-none flex items-center justify-center px-4 text-sm text-red-500 text-center bg-white/70'>
-										Unable to load Google Maps JavaScript API. Check key referrer restrictions, enabled APIs, and billing.
-									</div>
-								)}
-							</div>
-							<div className='mt-2 text-[12px] text-gray-500'>
-								Map API status: {String(apiStatus)}
+								<MapContainer
+									center={getInitialCenter()}
+									zoom={selectedPosition ? 16 : 6}
+									scrollWheelZoom={true}
+									style={{ height: '100%', width: '100%' }}
+								>
+									<TileLayer
+										attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+										url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+									/>
+									<MapClickHandler onMapClick={handleMapClick} />
+									{selectedPosition && (
+										<>
+											<UpdateMapView position={selectedPosition} />
+											<Marker position={selectedPosition}>
+												<Popup>Selected location</Popup>
+											</Marker>
+										</>
+									)}
+								</MapContainer>
+
+								<button
+									type='button'
+									onClick={handleLocateMe}
+									title='Use my current location'
+									className='absolute bottom-3 right-3 z-1000 w-10 h-10 bg-white rounded-full shadow-lg
+										flex items-center justify-center hover:bg-gray-50 transition-colors border border-gray-200'
+								>
+									<LocateFixed className='w-4 h-4 text-primary' />
+								</button>
 							</div>
 
 							<div className='mt-4 flex justify-end'>
 								<button
 									type='button'
 									onClick={handleUseMapLocation}
-									disabled={isResolvingMapAddress}
+									disabled={isResolvingAddress || !selectedPosition}
 									className='bg-primary text-white px-6 py-2.5 rounded-full text-[15px] font-medium disabled:opacity-70'
 								>
-									{isResolvingMapAddress ? 'Resolving address...' : 'Use selected location'}
+									{isResolvingAddress ? 'Resolving address...' : 'Use selected location'}
 								</button>
 							</div>
 						</div>
@@ -406,20 +336,6 @@ const AddressInputWithMapInner = ({
 			)}
 		</>
 	)
-}
-
-const AddressInputWithMap = (props) => {
-	const apiKey = useMemo(() => (kGooglePlacesApiKey || '').trim(), [])
-
-	if (!apiKey) {
-		return (
-			<div className='text-[13px] text-red-500'>
-				Google Places API key is missing. Set `VITE_GOOGLE_PLACES_API_KEY`.
-			</div>
-		)
-	}
-
-	return <AddressInputWithMapInner {...props} apiKey={apiKey} />
 }
 
 export default AddressInputWithMap
