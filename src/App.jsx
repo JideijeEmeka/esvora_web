@@ -46,8 +46,8 @@ import RequestsView from './views/requests_view'
 import MyRequestsView from './views/my_requests_view'
 import RequestDetailsView from './views/request_details_view'
 import KycView from './views/kyc_view'
-import KycFormView from './views/kyc_form_view'
 import KycSelectIdView from './views/kyc_select_id_view'
+import KycEnterIdView from './views/kyc_enter_id_view'
 import KycQrcodeView from './views/kyc_qrcode_view'
 import KycSubmitSuccessView from './views/kyc_submit_success_view'
 import AddPropertyView from './views/add_property_view'
@@ -130,8 +130,8 @@ const App = () => {
         <Route path="/reset-password-success" element={<ResetPasswordSuccessView />} />
         <Route path="/explore" element={<ExploreView />} />
         <Route path="/kyc" element={<KycView />} />
-        <Route path="/kyc/form" element={<KycFormView />} />
         <Route path="/kyc/select-id" element={<KycSelectIdView />} />
+        <Route path="/kyc/enter-id" element={<KycEnterIdView />} />
         <Route path="/kyc/qrcode" element={<KycQrcodeView />} />
         <Route path="/kyc/success" element={<KycSubmitSuccessView />} />
         <Route path="/buy" element={<BuyView />} />
