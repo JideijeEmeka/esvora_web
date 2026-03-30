@@ -12,7 +12,7 @@ const KycQrcodeView = () => {
 	const qrCodeValue = 'https://reactjs.org/'
 
 	const handleBack = () => {
-		navigate('/kyc/select-id')
+		navigate('/kyc/enter-id')
 	}
 
 	const handleContinue = () => {
