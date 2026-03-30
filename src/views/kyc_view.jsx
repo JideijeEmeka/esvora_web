@@ -8,7 +8,7 @@ const KycView = () => {
 	const navigate = useNavigate()
 
 	const handleAgreeAndContinue = () => {
-		navigate('/kyc/form')
+		navigate('/kyc/select-id')
 	}
 
 	return (
