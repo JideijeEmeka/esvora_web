@@ -9,11 +9,11 @@ const KycSelectIdView = () => {
 	const [selectedIdType, setSelectedIdType] = useState('bvn')
 
 	const handleBack = () => {
-		navigate('/kyc/form')
+		navigate('/kyc')
 	}
 
 	const handleContinue = () => {
-		navigate('/kyc/qrcode')
+		navigate('/kyc/enter-id', { state: { idType: selectedIdType } })
 	}
 
 	return (
@@ -52,7 +52,7 @@ const KycSelectIdView = () => {
 							{/* BVN Option */}
 							<label
 								htmlFor='bvn'
-								className={`flex items-start gap-4 p-4 border-2 rounded-full cursor-pointer transition-all ${
+								className={`flex items-start gap-4 p-4 border-2 rounded-xl cursor-pointer transition-all ${
 									selectedIdType === 'bvn'
 										? 'border-primary bg-primary/5'
 										: 'border-gray-200 hover:border-gray-300'
@@ -101,7 +101,7 @@ const KycSelectIdView = () => {
 							{/* NIN Option */}
 							<label
 								htmlFor='nin'
-								className={`flex items-start gap-4 p-4 border-2 rounded-full cursor-pointer transition-all ${
+								className={`flex items-start gap-4 p-4 border-2 rounded-xl cursor-pointer transition-all ${
 									selectedIdType === 'nin'
 										? 'border-primary bg-primary/5'
 										: 'border-gray-200 hover:border-gray-300'
