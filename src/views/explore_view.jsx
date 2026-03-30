@@ -5,7 +5,7 @@ import FilterPropertiesWidget from '../components/filter_properties_widget'
 import Footer from '../components/footer'
 import PropertyCardWidget from '../components/property_card_widget'
 import Loader from '../components/loader'
-import { Search, Filter, ChevronLeft, ChevronRight, X, MapIcon } from 'lucide-react'
+import { Search, Filter, ChevronLeft, ChevronRight, X, MapIcon, ShieldCheck } from 'lucide-react'
 import MapModal from '../components/map_modal'
 import { getPropertyTypeLabel, getStateLabel, getFurnishingLabel } from '../lib/constants'
 import { useNavigate } from 'react-router-dom'
@@ -13,6 +13,7 @@ import { store } from '../redux/store'
 import { authApi } from '../repository/auth_repository'
 import { updateAccount } from '../redux/slices/accountSlice'
 import { selectProperties } from '../redux/slices/propertySlice'
+import { selectCurrentAccount } from '../redux/slices/accountSlice'
 import agreementsController from '../controllers/agreements_controller'
 import walletController from '../controllers/wallet_controller'
 import propertyController from '../controllers/property_controller'
@@ -24,7 +25,9 @@ import { getToken } from '../lib/localStorage'
 const ExploreView = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [isLoadingProperties, setIsLoadingProperties] = useState(false)
+  const [showKycBanner, setShowKycBanner] = useState(true)
   const apiProperties = useSelector(selectProperties)
+  const account = useSelector(selectCurrentAccount)
   const [myStateProperties, setMyStateProperties] = useState([])
 
   useEffect(() => {
@@ -289,6 +292,31 @@ const ExploreView = () => {
   return (
     <>
       <Navbar />
+
+      {/* KYC Verification Banner */}
+      {account && !account.is_kyc_verified && showKycBanner && (
+        <div className='fixed top-20 left-0 right-0 z-40 px-4 md:px-8 pt-4'>
+          <div
+            className='bg-primary rounded-xl px-4 py-3 flex items-center justify-between cursor-pointer shadow-lg max-w-7xl mx-auto'
+            onClick={() => navigate('/kyc')}
+          >
+            <div className='flex items-center gap-3'>
+              <ShieldCheck className='w-5 h-5 text-white shrink-0' />
+              <div>
+                <p className='text-white font-semibold text-[15px]'>KYC Verification</p>
+                <p className='text-white/80 text-[13px]'>Complete your verification to enjoy full access.</p>
+              </div>
+            </div>
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowKycBanner(false) }}
+              className='text-white/80 hover:text-white transition-colors p-1 shrink-0 cursor-pointer'
+            >
+              <X className='w-5 h-5' />
+            </button>
+          </div>
+        </div>
+      )}
+
       <FilterPropertiesWidget 
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
