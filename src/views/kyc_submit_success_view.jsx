@@ -9,7 +9,7 @@ const KycSubmitSuccessView = () => {
 	const navigate = useNavigate()
 
 	const handleGoHome = () => {
-		navigate('/sign-up')
+		navigate('/explore')
 	}
 
 	return (
