@@ -29,11 +29,22 @@ const ExploreView = () => {
   const apiProperties = useSelector(selectProperties)
   const account = useSelector(selectCurrentAccount)
   const [myStateProperties, setMyStateProperties] = useState([])
+  const [statesWithProperties, setStatesWithProperties] = useState([])
+  const [statesWithPropertiesLoading, setStatesWithPropertiesLoading] = useState(true)
 
   useEffect(() => {
     // Discover: load properties for all visitors (public)
     propertyController
       .getAllProperties({ onError: () => {} })
+      .catch(() => {})
+
+    setStatesWithPropertiesLoading(true)
+    propertyController
+      .getStatesWithProperties({
+        onSuccess: (list) => setStatesWithProperties(list),
+        onError: () => setStatesWithProperties([])
+      })
+      .finally(() => setStatesWithPropertiesLoading(false))
       .catch(() => {})
 
     if (!getToken()) return
@@ -195,11 +206,10 @@ const ExploreView = () => {
     })
   }, [selectedCategory, allProperties])
 
-  const popularLocations = [
-    'Lagos', 'Benin', 'Kano', 'Abeokuta', 'Akure', 'Calabar',
-    'Abuja', 'Enugu', 'Maiduguri', 'Asaba', 'Illorin',
-    'Portharcout', 'Ibadan', 'Jos', 'Onitsha', 'Warri', 'Uyo'
-  ]
+  const handlePopularLocationClick = (stateName) => {
+    if (!stateName) return
+    navigate(`/explore/state/${encodeURIComponent(stateName)}`)
+  }
 
   const scrollCategories = (direction) => {
     if (!categoryRef.current) return
@@ -289,32 +299,44 @@ const ExploreView = () => {
   // Filtered properties are used only in the filtered results section
   // Popular sections always use allProperties
 
+  const showKycStrip = Boolean(account && !account.is_kyc_verified && showKycBanner)
+
+  const renderKycBannerCard = () => (
+    <div
+      className='bg-primary rounded-xl px-4 py-3 flex items-center justify-between cursor-pointer shadow-lg max-w-7xl mx-auto'
+      onClick={() => navigate('/kyc')}
+    >
+      <div className='flex items-center gap-3'>
+        <ShieldCheck className='w-5 h-5 text-white shrink-0' />
+        <div>
+          <p className='text-white font-semibold text-[15px]'>KYC Verification</p>
+          <p className='text-white/80 text-[13px]'>Complete your verification to enjoy full access.</p>
+        </div>
+      </div>
+      <button
+        type='button'
+        onClick={(e) => { e.stopPropagation(); setShowKycBanner(false) }}
+        className='text-white/80 hover:text-white transition-colors p-1 shrink-0 cursor-pointer'
+      >
+        <X className='w-5 h-5' />
+      </button>
+    </div>
+  )
+
   return (
     <>
       <Navbar />
 
-      {/* KYC Verification Banner */}
-      {account && !account.is_kyc_verified && showKycBanner && (
-        <div className='fixed top-20 left-0 right-0 z-40 px-4 md:px-8 pt-4'>
-          <div
-            className='bg-primary rounded-xl px-4 py-3 flex items-center justify-between cursor-pointer shadow-lg max-w-7xl mx-auto'
-            onClick={() => navigate('/kyc')}
-          >
-            <div className='flex items-center gap-3'>
-              <ShieldCheck className='w-5 h-5 text-white shrink-0' />
-              <div>
-                <p className='text-white font-semibold text-[15px]'>KYC Verification</p>
-                <p className='text-white/80 text-[13px]'>Complete your verification to enjoy full access.</p>
-              </div>
-            </div>
-            <button
-              onClick={(e) => { e.stopPropagation(); setShowKycBanner(false) }}
-              className='text-white/80 hover:text-white transition-colors p-1 shrink-0 cursor-pointer'
-            >
-              <X className='w-5 h-5' />
-            </button>
+      {/* KYC: mobile = in-flow + sticky under navbar; md+ = fixed overlay (unchanged) */}
+      {showKycStrip && (
+        <>
+          <div className='md:hidden mt-20 sticky top-20 z-40 px-4 pt-2 pb-3 bg-gray-50 border-b border-gray-100'>
+            {renderKycBannerCard()}
           </div>
-        </div>
+          <div className='hidden md:block fixed top-20 left-0 right-0 z-40 px-4 md:px-8 pt-4'>
+            {renderKycBannerCard()}
+          </div>
+        </>
       )}
 
       <FilterPropertiesWidget 
@@ -323,8 +345,12 @@ const ExploreView = () => {
         onApply={handleFilterApply}
       />
       
-      {/* Hero Section */}
-      <div className='relative w-full h-[500px] max-md:h-[400px] mt-20 overflow-hidden'>
+      {/* Hero Section — on mobile, KYC strip is in-flow above hero so no extra top margin when strip shows */}
+      <div
+        className={`relative w-full h-[500px] max-md:h-[400px] mt-20 overflow-hidden ${
+          showKycStrip ? 'max-md:mt-0' : ''
+        }`}
+      >
         <div 
           className='absolute inset-0 bg-cover bg-center'
           style={{
@@ -692,20 +718,35 @@ const ExploreView = () => {
           </div>
         )}
 
-        {/* Popular Locations Section */}
+        {/* Popular Locations Section — from GET /api/v1/states */}
         <div className='mb-1'>
           <h2 className='text-[24px] font-semibold text-gray-900 mb-6'>Popular locations</h2>
-          <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4'>
-            {popularLocations.map((location, index) => (
-              <button
-                key={index}
-                className='text-left px-4 py-3 hover:bg-gray-100 
-                   rounded-lg text-[16px] font-medium text-gray-700 transition-colors'
-              >
-                {location}
-              </button>
-            ))}
-          </div>
+          {statesWithPropertiesLoading ? (
+            <div className='flex justify-center py-8'>
+              <Loader />
+            </div>
+          ) : statesWithProperties.length === 0 ? (
+            <p className='text-gray-500 text-sm'>No location data available yet.</p>
+          ) : (
+            <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4'>
+              {statesWithProperties.map((item) => (
+                <button
+                  key={item.state}
+                  type='button'
+                  onClick={() => handlePopularLocationClick(item.state)}
+                  className='text-left px-4 py-3 hover:bg-gray-100 rounded-lg transition-colors border border-transparent hover:border-gray-200'
+                >
+                  <div className='text-[16px] font-medium text-gray-900 capitalize'>
+                    {item.state}
+                  </div>
+                  <div className='text-[13px] text-gray-500 mt-0.5'>
+                    {item.properties_count}{' '}
+                    {item.properties_count === 1 ? 'property' : 'properties'}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
