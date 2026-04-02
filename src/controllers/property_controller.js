@@ -163,6 +163,32 @@ class PropertyController {
 		}
 	}
 
+	/**
+	 * GET /api/v1/states — states with property counts for explore “Popular locations”.
+	 * @returns {Promise<Array<{ state: string, properties_count: number }>>}
+	 */
+	async getStatesWithProperties(cb = {}) {
+		const { onSuccess, onError, forceRefetch } = cb
+		try {
+			const res = await store.dispatch(
+				propertyApi.endpoints.getStatesWithProperties.initiate(undefined, {
+					forceRefetch: !!forceRefetch
+				})
+			)
+			if (res.error) {
+				onError?.(errMsg(res.error, 'Failed to load states'))
+				return []
+			}
+			const raw = res.data?.data?.states ?? res.data?.states
+			const list = Array.isArray(raw) ? raw : []
+			onSuccess?.(list)
+			return list
+		} catch (e) {
+			onError?.(errMsg(e, 'Failed to load states'))
+			return []
+		}
+	}
+
 	async getPropertyDetails(uuid, cb = {}) {
 		const { onSuccess, onError, forceRefetch } = cb
 		if (!uuid) return null
@@ -205,17 +231,21 @@ class PropertyController {
 	}
 
 	async filterProperties(params, cb = {}) {
-		const { onSuccess, onError } = cb
+		const { onSuccess, onError, skipStoreUpdate, forceRefetch } = cb
 		try {
 			const res = await store.dispatch(
-				propertyApi.endpoints.filterProperties.initiate(params ?? {})
+				propertyApi.endpoints.filterProperties.initiate(params ?? {}, {
+					forceRefetch: !!forceRefetch
+				})
 			)
 			if (res.error) {
 				onError?.(errMsg(res.error, 'Failed to filter properties'))
 				return []
 			}
 			const list = fromPropertyListApiResponse(res.data)
-			store.dispatch(updateProperties(list))
+			if (!skipStoreUpdate) {
+				store.dispatch(updateProperties(list))
+			}
 			onSuccess?.(list)
 			return list
 		} catch (e) {
