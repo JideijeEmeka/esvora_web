@@ -7,7 +7,7 @@ import propertyController from '../controllers/property_controller'
 import { selectPropertyDetails } from '../redux/slices/propertySlice'
 import { normalizePropertyDetails } from '../lib/propertyUtils'
 import { 
-  Heart, 
+  // Heart,
   ChevronLeft, 
   ChevronRight, 
   MapIcon, 
@@ -32,7 +32,7 @@ import PaymentWidget from '../components/payment_widget'
 import RegulationsWidget from '../components/regulations_widget'
 import ReviewsWidget from '../components/reviews_widget'
 import SharePropertyWidget from '../components/share_property_widget'
-import AddToFavoriteWidget from '../components/add_to_favorite_widget'
+// import AddToFavoriteWidget from '../components/add_to_favorite_widget'
 import toast from 'react-hot-toast'
 import SendRequestWidget from '../components/send_request_widget'
 import { getToken } from '../lib/localStorage'
@@ -75,10 +75,10 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
   const [activeTab, setActiveTab] = useState('overview')
-  const [isFavorite, setIsFavorite] = useState(false)
+  // const [isFavorite, setIsFavorite] = useState(false)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [isShareOpen, setIsShareOpen] = useState(false)
-  const [isFavoriteOpen, setIsFavoriteOpen] = useState(false)
+  // const [isFavoriteOpen, setIsFavoriteOpen] = useState(false)
 	const [isSendRequestOpen, setIsSendRequestOpen] = useState(false)
 	const [isSendRequestSubmitting, setIsSendRequestSubmitting] = useState(false)
 	const [isRequestSubmittedOpen, setIsRequestSubmittedOpen] = useState(false)
@@ -182,11 +182,11 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
             <span className='text-[12px] font-medium text-gray-700'>Available</span>
           </div>
         )}
-        <button
+        {/* <button
           className='absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors'
         >
           <Heart className='w-4 h-4 text-gray-700' />
-        </button>
+        </button> */}
       </div>
       <div className='p-4'>
         <p className='text-[20px] font-semibold text-gray-900 mb-2'>{property.price}</p>
@@ -398,11 +398,11 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
         onClose={() => setIsShareOpen(false)}
         property={property}
       />
-      <AddToFavoriteWidget
+      {/* <AddToFavoriteWidget
         isOpen={isFavoriteOpen}
         onClose={() => setIsFavoriteOpen(false)}
         property={property}
-      />
+      /> */}
       <SendRequestWidget
         isOpen={isSendRequestOpen}
         onClose={() => setIsSendRequestOpen(false)}
@@ -746,7 +746,7 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
 
           {/* Right Column - Sticky Sidebar */}
           <div className='w-full'>
-            {/* Action Icons - Share, Schedule, Favorite */}
+            {/* Action Icons - Share, Schedule (Favorite commented out) */}
               <div className='flex items-center justify-between gap-2 mb-4'>
                 <button
                     onClick={() => setIsShareOpen(true)}
@@ -766,7 +766,7 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                     <Calendar className='w-4 h-4 text-gray-700' />
                     <span className='text-[14px] font-medium text-gray-700 ml-2'>Inspection schedules</span>
                     </button>
-                    <button
+                    {/* <button
                   onClick={() => setIsFavoriteOpen(true)}
                   className={`w-30 h-12 rounded-full border border-gray-300 bg-gray-50
                     flex items-center justify-center hover:scale-105 hover:bg-primary/10 transition-colors ${
@@ -782,7 +782,7 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                     }`}
                   />
                   <span className='text-[14px] font-medium text-gray-700 ml-2'>Favorite</span>
-                </button>
+                </button> */}
               </div>
             <div className='bg-gray-50 border border-gray-200 rounded-2xl p-6 shadow-sm'>
 
