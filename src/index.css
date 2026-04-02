@@ -17,6 +17,19 @@ body{
   background-color: #FFFFFF;
 }
 
+@keyframes esvora-refresh-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.esvora-refresh-shimmer {
+  animation: esvora-refresh-shimmer 1.1s ease-in-out infinite;
+}
+
 /* Hide scrollbar for horizontal scroll */
 .scrollbar-hide {
   -ms-overflow-style: none;
