@@ -21,6 +21,7 @@ import ResetPasswordView from './views/auth/reset_password_view'
 import ForgotPasswordOtpView from './views/auth/forgot_password_otp_view'
 import ResetPasswordSuccessView from './views/auth/reset_password_success_view'
 import ExploreView from './views/explore_view'
+import StatePropertiesView from './views/state_properties_view'
 import PropertyDetailsView from './views/property_details_view'
 import MyPropertyDetailsView from './views/my_property_details_view'
 import PropertyOwnerMyPropertyDetailsView from './views/property_owner_my_property_details_view'
@@ -129,6 +130,7 @@ const App = () => {
         <Route path="/forgot-password-otp/:email" element={<ForgotPasswordOtpView />} />
         <Route path="/reset-password-success" element={<ResetPasswordSuccessView />} />
         <Route path="/explore" element={<ExploreView />} />
+        <Route path="/explore/state/:state" element={<StatePropertiesView />} />
         <Route path="/kyc" element={<KycView />} />
         <Route path="/kyc/select-id" element={<KycSelectIdView />} />
         <Route path="/kyc/enter-id" element={<KycEnterIdView />} />
