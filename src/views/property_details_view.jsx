@@ -747,10 +747,10 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
           {/* Right Column - Sticky Sidebar */}
           <div className='w-full'>
             {/* Action Icons - Share, Schedule (Favorite commented out) */}
-              <div className='flex items-center justify-between gap-2 mb-4'>
+              <div className='flex items-center gap-3 mb-4'>
                 <button
                     onClick={() => setIsShareOpen(true)}
-                    className='w-30 h-12 rounded-full border border-gray-300 bg-gray-50
+                    className='shrink-0 w-30 h-12 rounded-full border border-gray-300 bg-gray-50
                       flex items-center justify-center hover:scale-105 hover:bg-primary/10 transition-colors'
                     title='Share'
                     >
@@ -758,13 +758,13 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                     <span className='text-[14px] font-medium text-gray-700 ml-2'>Share</span>
                     </button>
                     <button
-                    className='w-30 h-12 rounded-full border border-gray-300 bg-gray-50
+                    className='flex-1 min-w-54 sm:min-w-60 h-12 px-3 rounded-full border border-gray-300 bg-gray-50
                       flex items-center justify-center hover:scale-105 hover:bg-primary/10 transition-colors'
                     title='Inspection schedules'
                     onClick={openInspectionSchedules}
                     >
-                    <Calendar className='w-4 h-4 text-gray-700' />
-                    <span className='text-[14px] font-medium text-gray-700 ml-2'>Inspection schedules</span>
+                    <Calendar className='w-4 h-4 text-gray-700 shrink-0' />
+                    <span className='text-[14px] font-medium text-gray-700 ml-2 text-center'>Inspection schedules</span>
                     </button>
                     {/* <button
                   onClick={() => setIsFavoriteOpen(true)}
