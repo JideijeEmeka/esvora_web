@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import Navbar from '../components/navbar'
 import Footer from '../components/footer'
 import { ChevronLeft } from 'lucide-react'
+import { verifyId } from '../repository/kyc_repository'
 
 const KycEnterIdView = () => {
 	const navigate = useNavigate()
@@ -14,6 +16,7 @@ const KycEnterIdView = () => {
 
 	const [idNumber, setIdNumber] = useState('')
 	const [error, setError] = useState('')
+	const [submitting, setSubmitting] = useState(false)
 
 	const handleChange = (e) => {
 		const digits = e.target.value.replace(/\D/g, '').slice(0, maxLength)
@@ -21,12 +24,31 @@ const KycEnterIdView = () => {
 		if (error) setError('')
 	}
 
-	const handleContinue = () => {
+	const handleContinue = async () => {
 		if (idNumber.length !== maxLength) {
 			setError(`Please enter a valid ${maxLength}-digit ${label} number`)
 			return
 		}
-		navigate('/kyc/qrcode', { state: { idType, idNumber } })
+		setSubmitting(true)
+		setError('')
+		try {
+			const data = await verifyId({ idNumber, idType })
+			const redirect =
+				typeof data?.data?.redirect_url === 'string'
+					? data.data.redirect_url.trim()
+					: ''
+			if (redirect) {
+				navigate('/kyc/verify', { state: { redirectUrl: redirect } })
+			} else {
+				navigate('/kyc/success')
+			}
+		} catch (e) {
+			const msg = e instanceof Error ? e.message : 'Verification failed'
+			setError(msg)
+			toast.error(msg)
+		} finally {
+			setSubmitting(false)
+		}
 	}
 
 	return (
@@ -83,10 +105,11 @@ const KycEnterIdView = () => {
 
 						<button
 							type='button'
+							disabled={submitting}
 							onClick={handleContinue}
-							className='w-full bg-primary text-white px-8 py-4 rounded-full text-[18px] font-semibold hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl transform hover:scale-[1.02]'
+							className='w-full bg-primary text-white px-8 py-4 rounded-full text-[18px] font-semibold hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-60 disabled:pointer-events-none'
 						>
-							Continue
+							{submitting ? 'Submitting…' : 'Submit'}
 						</button>
 					</div>
 				</div>
