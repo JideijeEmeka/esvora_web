@@ -49,7 +49,9 @@ import RequestDetailsView from './views/request_details_view'
 import KycView from './views/kyc_view'
 import KycSelectIdView from './views/kyc_select_id_view'
 import KycEnterIdView from './views/kyc_enter_id_view'
-import KycQrcodeView from './views/kyc_qrcode_view'
+import KycVerificationView from './views/kyc_verification_view'
+import KycRejectedView from './views/kyc_rejected_view'
+import KycSessionExpiredView from './views/kyc_session_expired_view'
 import KycSubmitSuccessView from './views/kyc_submit_success_view'
 import AddPropertyView from './views/add_property_view'
 import EditListingView from './views/edit_listing_view'
@@ -134,7 +136,9 @@ const App = () => {
         <Route path="/kyc" element={<KycView />} />
         <Route path="/kyc/select-id" element={<KycSelectIdView />} />
         <Route path="/kyc/enter-id" element={<KycEnterIdView />} />
-        <Route path="/kyc/qrcode" element={<KycQrcodeView />} />
+        <Route path="/kyc/verify" element={<KycVerificationView />} />
+        <Route path="/kyc/rejected" element={<KycRejectedView />} />
+        <Route path="/kyc/session-expired" element={<KycSessionExpiredView />} />
         <Route path="/kyc/success" element={<KycSubmitSuccessView />} />
         <Route path="/buy" element={<BuyView />} />
         <Route path="/rent" element={<RentView />} />
