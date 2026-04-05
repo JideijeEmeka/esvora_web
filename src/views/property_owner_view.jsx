@@ -7,7 +7,8 @@ import Loader from '../components/loader'
 import propertyController from '../controllers/property_controller'
 import { selectLandlordProperties } from '../redux/slices/propertySlice'
 import { normalizeProperties } from '../lib/propertyUtils'
-import { Home, Clock, FileText, ChevronLeft, ChevronRight, MapIcon, Pencil } from 'lucide-react'
+import { Home, Clock, FileText, ChevronLeft, ChevronRight, MapIcon, Pencil, ShieldCheck, X } from 'lucide-react'
+import { selectCurrentAccount } from '../redux/slices/accountSlice'
 
 const toStatusLabel = (p) => {
 	const t = (p.property_type ?? p.propertyType ?? p.status ?? '').toString().toLowerCase()
@@ -126,6 +127,8 @@ const PropertyOwnerCard = ({ property, onViewDetails, onEdit }) => {
 const PropertyOwnerView = () => {
 	const navigate = useNavigate()
 	const propertiesRef = useRef(null)
+	const account = useSelector(selectCurrentAccount)
+	const [showKycBanner, setShowKycBanner] = useState(true)
 	const landlordPropertiesRaw = useSelector(selectLandlordProperties)
 	const hasCachedData = Array.isArray(landlordPropertiesRaw) && landlordPropertiesRaw.length > 0
 	const [isLoading, setIsLoading] = useState(!hasCachedData)
@@ -166,11 +169,48 @@ const PropertyOwnerView = () => {
 		})
 	}, [])
 
+	const showKycStrip = Boolean(account && !account.is_kyc_verified && showKycBanner)
+
+	const renderKycBannerCard = () => (
+		<div
+			className='bg-primary rounded-xl px-4 py-3 flex items-center justify-between cursor-pointer shadow-lg max-w-7xl mx-auto'
+			onClick={() => navigate('/kyc')}
+		>
+			<div className='flex items-center gap-3'>
+				<ShieldCheck className='w-5 h-5 text-white shrink-0' />
+				<div>
+					<p className='text-white font-semibold text-[15px]'>KYC Verification</p>
+					<p className='text-white/80 text-[13px]'>Complete your verification to enjoy full access.</p>
+				</div>
+			</div>
+			<button
+				type='button'
+				onClick={(e) => {
+					e.stopPropagation()
+					setShowKycBanner(false)
+				}}
+				className='text-white/80 hover:text-white transition-colors p-1 shrink-0 cursor-pointer'
+			>
+				<X className='w-5 h-5' />
+			</button>
+		</div>
+	)
+
 		return (
 		<>
 			<PropertyOwnerNavbar />
+			{showKycStrip && (
+				<>
+					<div className='md:hidden mt-20 sticky top-20 z-40 px-4 pt-2 pb-3 bg-gray-50 border-b border-gray-100'>
+						{renderKycBannerCard()}
+					</div>
+					<div className='hidden md:block fixed top-20 left-0 right-0 z-40 px-4 md:px-8 pt-4'>
+						{renderKycBannerCard()}
+					</div>
+				</>
+			)}
 			{/* Hero Section - no overflow-hidden so cards below can show */}
-			<div className='relative w-full mt-20'>
+			<div className={`relative w-full mt-20 ${showKycStrip ? 'max-md:mt-0' : ''}`}>
 				<div className='relative w-full h-[420px] max-md:h-[360px] overflow-hidden'>
 					<div
 						className='absolute inset-0 bg-cover bg-center'
