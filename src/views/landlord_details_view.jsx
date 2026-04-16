@@ -1,8 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Star, Phone, Mail, CheckCircle, ChevronLeft, ChevronRight, Search, Filter, ChevronDown } from 'lucide-react'
+import { useSelector } from 'react-redux'
+import { Star, Mail, CheckCircle, ChevronLeft, ChevronRight, Search, Filter, ChevronDown, Send, X, Check } from 'lucide-react'
+import toast from 'react-hot-toast'
 import Navbar from '../components/navbar'
 import Footer from '../components/footer'
+import Loader from '../components/loader'
+import chatController from '../controllers/chat_controller'
+import { selectCurrentAccount } from '../redux/slices/accountSlice'
 import PropertyCardWidget from '../components/property_card_widget'
 import ReviewsFilterWidget from '../components/reviews_filter_widget'
 import ReviewsAllWidget from '../components/reviews_all_widget'
@@ -43,12 +48,37 @@ function getReviewAvatarSrc(avatar, fallbackSeed = '') {
 	return `${DICEBEAR_ADVENTURER}?seed=${encodeURIComponent(seed)}`
 }
 
+function formatMessageTime(iso) {
+	if (!iso) return ''
+	const d = new Date(iso)
+	if (Number.isNaN(d.getTime())) return ''
+	return d.toLocaleString(undefined, { hour: 'numeric', minute: '2-digit' })
+}
+
+/** @param {import('../models/chatMessageModel').ChatMessage} m */
+function messageFromMe(m, myUserId) {
+	if (!m) return false
+	const st = (m.sender_type ?? '').toLowerCase()
+	if (st === 'tenant' || st === 'user' || st === 'renter') return true
+	if (st === 'agent' || st === 'landlord' || st === 'owner') return false
+	if (myUserId && Number(m.sender_id) === myUserId) return true
+	return false
+}
+
 const LandlordDetailsView = () => {
 	const navigate = useNavigate()
 	const location = useLocation()
 	const landlord = location.state?.landlord || DEFAULT_LANDLORD
 	const reviews = location.state?.reviews ?? []
-	
+	const propertyId =
+		location.state?.propertyId != null && String(location.state.propertyId).trim() !== ''
+			? String(location.state.propertyId).trim()
+			: ''
+	const propertyTitle = location.state?.propertyTitle ?? ''
+
+	const account = useSelector(selectCurrentAccount)
+	const myUserId = account?.id != null ? Number(account.id) : 0
+
 	const [favorites, setFavorites] = useState(new Set())
 	const [isFilterOpen, setIsFilterOpen] = useState(false)
 	const [isAllOpen, setIsAllOpen] = useState(false)
@@ -59,6 +89,12 @@ const LandlordDetailsView = () => {
 	const [toDate, setToDate] = useState(null)
 	const [searchQuery, setSearchQuery] = useState('')
 	const propertiesRef = useRef(null)
+
+	const [isMessageModalOpen, setIsMessageModalOpen] = useState(false)
+	const [messages, setMessages] = useState([])
+	const [loadingMessages, setLoadingMessages] = useState(false)
+	const [messageInput, setMessageInput] = useState('')
+	const [sending, setSending] = useState(false)
 
 	useEffect(() => {
 		window.scrollTo(0, 0)
@@ -113,14 +149,57 @@ const LandlordDetailsView = () => {
 		}
 	}
 
-	const handleContact = () => {
-		// Handle contact action
-		console.log('Contact landlord:', landlord.email)
+	// const handleContact = () => {
+	// 	console.log('Contact landlord:', landlord.email)
+	// }
+
+	const loadMessages = useCallback(() => {
+		if (!propertyId) return
+		setLoadingMessages(true)
+		chatController.getChatMessages(propertyId, {
+			onSuccess: (res) => {
+				setMessages(res?.data ?? [])
+				setLoadingMessages(false)
+			},
+			onError: (msg) => {
+				toast.error(msg ?? 'Failed to load messages')
+				setMessages([])
+				setLoadingMessages(false)
+			},
+			forceRefetch: true
+		})
+	}, [propertyId])
+
+	useEffect(() => {
+		if (!isMessageModalOpen || !propertyId) return
+		loadMessages()
+	}, [isMessageModalOpen, propertyId, loadMessages])
+
+	const openMessageModal = () => {
+		setIsMessageModalOpen(true)
 	}
 
-	const handleSendMessage = () => {
-		// Handle send message action
-		console.log('Send message to:', landlord.email)
+	const closeMessageModal = () => {
+		setIsMessageModalOpen(false)
+		setMessageInput('')
+	}
+
+	const submitChatMessage = () => {
+		const text = messageInput.trim()
+		if (!text || !propertyId || sending) return
+		setSending(true)
+		chatController.sendMessage(propertyId, text, {
+			onSuccess: (res) => {
+				setMessageInput('')
+				if (res?.data) setMessages((prev) => [...prev, res.data])
+				else loadMessages()
+				setSending(false)
+			},
+			onError: (msg) => {
+				toast.error(msg ?? 'Failed to send message')
+				setSending(false)
+			}
+		})
 	}
 
 	return (
@@ -165,7 +244,7 @@ const LandlordDetailsView = () => {
 								</div>
 							</div>
 							<div className='flex flex-col gap-3 mt-6'>
-								<button
+								{/* <button
 									type='button'
 									onClick={handleContact}
 									className='flex-1 flex items-center justify-center gap-2 py-3 
@@ -173,10 +252,10 @@ const LandlordDetailsView = () => {
 								>
 									<Phone className='w-4 h-4' />
 									Contact
-								</button>
+								</button> */}
 								<button
 									type='button'
-									onClick={handleSendMessage}
+									onClick={openMessageModal}
 									className='flex-1 flex items-center justify-center gap-2 py-3 
 									rounded-full bg-primary text-white font-medium 
 									text-[14px] hover:bg-primary/90'
@@ -373,6 +452,106 @@ const LandlordDetailsView = () => {
 					</div>
 				</div>
 			</div>
+
+			{isMessageModalOpen && (
+				<div
+					className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40'
+					role='dialog'
+					aria-modal='true'
+					aria-labelledby='landlord-message-modal-title'
+					onClick={closeMessageModal}
+				>
+					<div
+						className='w-full max-w-lg max-h-[85vh] flex flex-col rounded-2xl overflow-hidden border border-gray-200 bg-gray-50/50 shadow-xl'
+						onClick={(e) => e.stopPropagation()}
+					>
+						<div className='p-4 bg-white border-b border-gray-200 flex items-center gap-3 shrink-0'>
+							<button
+								type='button'
+								onClick={closeMessageModal}
+								className='p-1 rounded-full hover:bg-gray-100 transition-colors text-gray-600'
+								aria-label='Close'
+							>
+								<X className='w-6 h-6' />
+							</button>
+							<div className='min-w-0 flex-1'>
+								<h3 id='landlord-message-modal-title' className='text-[18px] font-semibold text-gray-900 truncate'>
+									{landlord.name}
+								</h3>
+								<p className='text-[14px] text-gray-500 truncate'>
+									{propertyTitle || landlord.email || 'Messages'}
+								</p>
+							</div>
+						</div>
+						<div className='flex-1 overflow-y-auto p-6 space-y-4 min-h-[200px] max-h-[45vh]'>
+							{!propertyId ? (
+								<p className='text-center text-[14px] text-gray-500 py-8'>
+									Open this landlord from a property listing to send messages for that property.
+								</p>
+							) : loadingMessages ? (
+								<div className='flex justify-center py-16'>
+									<Loader />
+								</div>
+							) : messages.length === 0 ? (
+								<p className='text-center text-[14px] text-gray-500 py-12'>No messages yet. Send the first one.</p>
+							) : (
+								messages.map((msg) => {
+									const mine = messageFromMe(msg, myUserId)
+									return (
+										<div key={msg.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
+											<div
+												className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${
+													mine
+														? 'bg-primary text-white rounded-br-md'
+														: 'bg-white border border-gray-200 text-gray-900 rounded-bl-md'
+												}`}
+											>
+												<p className='text-[15px] whitespace-pre-wrap wrap-break-word'>{msg.message}</p>
+												<div className='flex items-center gap-2 justify-end mt-1'>
+													<span
+														className={`text-[11px] ${mine ? 'text-white/75' : 'text-gray-400'}`}
+													>
+														{formatMessageTime(msg.created_at)}
+													</span>
+													{mine && <Check className='w-3.5 h-3.5 text-white/80' />}
+												</div>
+											</div>
+										</div>
+									)
+								})
+							)}
+						</div>
+						<div className='p-4 bg-white border-t border-gray-200 shrink-0'>
+							<div className='flex items-center gap-2 bg-gray-100 rounded-full pl-4 pr-2 py-2'>
+								<input
+									type='text'
+									placeholder='Message'
+									value={messageInput}
+									onChange={(e) => setMessageInput(e.target.value)}
+									onKeyDown={(e) => {
+										if (e.key === 'Enter' && !e.shiftKey) {
+											e.preventDefault()
+											submitChatMessage()
+										}
+									}}
+									disabled={sending || !propertyId}
+									className='flex-1 bg-transparent text-[15px] focus:outline-none disabled:opacity-50'
+								/>
+								<button
+									type='button'
+									onClick={submitChatMessage}
+									disabled={sending || !messageInput.trim() || !propertyId}
+									className='w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary/90 transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed'
+									aria-label='Send message'
+								>
+									<Send className='w-5 h-5' />
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			)}
+
 			<Footer />
 		</>
 	)
