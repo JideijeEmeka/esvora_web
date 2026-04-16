@@ -120,7 +120,7 @@ const MyPropertiesView = () => {
 								property={property}
 								isFavorite={favorites.has(property.id)}
 								onFavoriteToggle={toggleFavorite}
-								onViewDetails={() => navigate(`/my-property-details/${property.id}`)}
+								onViewDetails={() => navigate(`/property-details/${property.id}`)}
 								fillWidth
 							/>
 						))}
