@@ -1,13 +1,32 @@
 import React, { useEffect, useState } from 'react'
 import { X, Link2 } from 'lucide-react'
 import Divider from './divider'
-import { Link } from 'react-router-dom'
 import linkedinIcon from '../assets/icons/linkedin.png'
 import instagramIcon from '../assets/icons/instagram.png'
 import xTwitterIcon from '../assets/icons/x_twitter.png'
 import tiktokIcon from '../assets/icons/tiktok.png'
 import whatsappIcon from '../assets/icons/whatsapp.png'
 import facebookIcon from '../assets/icons/facebook.png'
+import { kInstagramProfileUrl, kFacebookPageUrl, kTikTokProfileUrl } from '../lib/constants'
+
+/**
+ * Opens LinkedIn with the post composer active and the property URL in the body.
+ * `share-offsite` often shows no link for localhost / URLs LinkedIn cannot crawl; the feed
+ * `text` parameter puts the URL directly in the composer instead.
+ */
+function getLinkedInComposerShareUrl(pageUrl) {
+	return `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(pageUrl)}`
+}
+
+/** X / Twitter Web Intent — opens compose with the listing URL prefilled. */
+function getXTwitterIntentTweetUrl(pageUrl) {
+	return `https://x.com/intent/tweet?${new URLSearchParams({ text: pageUrl }).toString()}`
+}
+
+/** WhatsApp Click to Chat — opens app/web with the listing URL prefilled; user picks contact or status flow. */
+function getWhatsAppShareUrl(pageUrl) {
+	return `https://api.whatsapp.com/send?${new URLSearchParams({ text: pageUrl }).toString()}`
+}
 
 const SharePropertyWidget = ({ isOpen, onClose, property }) => {
 	const [copied, setCopied] = useState(false)
@@ -40,9 +59,14 @@ const SharePropertyWidget = ({ isOpen, onClose, property }) => {
 	const description = property?.title ?? property?.description ?? ''
 	const location = property?.location ?? property?.fullAddress ?? ''
 
+	const propertyPageUrl = typeof window !== 'undefined' ? window.location.href : ''
+	const linkedInShareHref = propertyPageUrl ? getLinkedInComposerShareUrl(propertyPageUrl) : '#'
+	const xTwitterShareHref = propertyPageUrl ? getXTwitterIntentTweetUrl(propertyPageUrl) : '#'
+	const whatsappShareHref = propertyPageUrl ? getWhatsAppShareUrl(propertyPageUrl) : '#'
+
 	const handleCopyLink = (e) => {
 		e.preventDefault()
-		const url = window.location.href
+		const url = propertyPageUrl || window.location.href
 		navigator.clipboard?.writeText(url).then(() => {
 			setCopied(true)
 			setTimeout(() => setCopied(false), 2000)
@@ -95,37 +119,70 @@ const SharePropertyWidget = ({ isOpen, onClose, property }) => {
 							{/* Sharing options */}
 							<div className='flex items-center gap-2'>
 								<div className='flex flex-wrap items-center gap-6'>
-									<Link to="/linkedin" className='text-gray-600 hover:text-primary 
-									   transition-colors flex items-center gap-2'>
-									  <img src={linkedinIcon} alt="linkedin" className='w-5 h-5' />
-									  LinkedIn
-									</Link>
-									<Link to="/instagram" className='text-gray-600 hover:text-primary 
-									   transition-colors flex items-center gap-2'>
+									<a
+										href={linkedInShareHref}
+										target='_blank'
+										rel='noopener noreferrer'
+										className='text-gray-600 hover:text-primary transition-colors flex items-center gap-2'
+										onClick={(e) => {
+											if (!propertyPageUrl) e.preventDefault()
+										}}
+									>
+										<img src={linkedinIcon} alt="linkedin" className='w-5 h-5' />
+										LinkedIn
+									</a>
+									<a
+										href={kInstagramProfileUrl}
+										target='_blank'
+										rel='noopener noreferrer'
+										className='text-gray-600 hover:text-primary transition-colors flex items-center gap-2'
+									>
 										<img src={instagramIcon} alt="instagram" className='w-5 h-5' />
 										Instagram
-									</Link>
+									</a>
 									
-									<Link to="/twitter" className='text-gray-900 flex items-center gap-2
-									     hover:text-primary transition-colors'>
-										<img src={xTwitterIcon} alt="twitter" className='w-5 h-5' />
+									<a
+										href={xTwitterShareHref}
+										target='_blank'
+										rel='noopener noreferrer'
+										className='text-gray-900 flex items-center gap-2 hover:text-primary transition-colors'
+										onClick={(e) => {
+											if (!propertyPageUrl) e.preventDefault()
+										}}
+									>
+										<img src={xTwitterIcon} alt="X (formerly Twitter)" className='w-5 h-5' />
 										X (formerly twitter)
-									</Link>
-									<Link to="/tiktok" className='text-gray-900 flex items-center gap-2
-									     hover:text-primary transition-colors'>
+									</a>
+									<a
+										href={kTikTokProfileUrl}
+										target='_blank'
+										rel='noopener noreferrer'
+										className='text-gray-900 flex items-center gap-2 hover:text-primary transition-colors'
+									>
 										<img src={tiktokIcon} alt="tiktok" className='w-5 h-5' />
 										Tiktok
-									</Link>
-									<Link to="/whatsapp" className='text-gray-600 flex items-center gap-2
-									     hover:text-primary transition-colors'>
+									</a>
+									<a
+										href={whatsappShareHref}
+										target='_blank'
+										rel='noopener noreferrer'
+										className='text-gray-600 flex items-center gap-2 hover:text-primary transition-colors'
+										onClick={(e) => {
+											if (!propertyPageUrl) e.preventDefault()
+										}}
+									>
 										<img src={whatsappIcon} alt="whatsapp" className='w-5 h-5' />
 										Whatsapp
-									</Link>
-									<Link to="/facebook" className='text-gray-600 flex items-center gap-2
-									     hover:text-primary transition-colors'>
+									</a>
+									<a
+										href={kFacebookPageUrl}
+										target='_blank'
+										rel='noopener noreferrer'
+										className='text-gray-600 flex items-center gap-2 hover:text-primary transition-colors'
+									>
 										<img src={facebookIcon} alt="facebook" className='w-5 h-5' />
 										Facebook
-									</Link>
+									</a>
 								</div>
 							</div>
 							<div className='flex items-center gap-2 hover:cursor-pointer
