@@ -49,9 +49,12 @@ export const kDeviceLocationSlice = 'device_location_slice'
 /** localStorage key for auth token */
 export const kToken = 'auth_token'
 
-/** Support contact (configure as needed) */
+/** Support contact (configure as needed); WhatsApp digits without + for wa.me */
 export const kSupportWhatsAppNumber = '2348084794951'
 export const kSupportPhoneNumber = '+2348084794951'
+
+/** Official WhatsApp chat (opens in new tab; +2348084794951) */
+export const kSupportWhatsAppUrl = `https://wa.me/${kSupportWhatsAppNumber.replace(/\D/g, '')}`
 
 /** Support ticket email (Tawk.to) */
 export const kTicketEmail = 'tickets@esvora.p.tawk.email'
@@ -59,6 +62,28 @@ export const kTicketEmail = 'tickets@esvora.p.tawk.email'
 /** Rate app store links (update with actual IDs when published) */
 export const kPlaystoreUrl = 'https://play.google.com/store/apps/details?id=com.example.esvora'
 export const kAppStoreUrl = 'https://apps.apple.com/us/app/esvora/id0000000000'
+
+/** Official company LinkedIn (opens in new tab from footer / share UI) */
+export const kLinkedInCompanyUrl = 'https://www.linkedin.com/company/esvora-ng/'
+
+/** Official Instagram profile (opens in new tab from footer / share UI) */
+export const kInstagramProfileUrl =
+	'https://www.instagram.com/esvora_ng?igsh=MXBocGZnZHhxNTN3dg%3D%3D&utm_source=qr'
+
+/** Official Facebook page / share link (opens in new tab from footer / share UI) */
+export const kFacebookPageUrl =
+	'https://www.facebook.com/share/1DNrassSE3/?mibextid=wwXIfr'
+
+/** Official X (Twitter) profile (opens in new tab from footer / share UI) */
+export const kXTwitterProfileUrl = 'https://x.com/esvora_ng?s=21'
+
+/** Official TikTok profile (opens in new tab from footer / share UI) */
+export const kTikTokProfileUrl =
+	'https://www.tiktok.com/@esvora_ng?_r=1&_t=ZS-92ojQ00FW4K'
+
+/** Hero background behind “Find affordable properties near you!” (Explore, Rent, Buy, Shortlet). */
+export const kAffordablePropertiesHeroBgUrl =
+	'https://plus.unsplash.com/premium_photo-1661913412680-c274b6fea096?q=80&w=3131&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
 
 /** Deposit gateway values */
 export const kPayStack = 'paystack'
