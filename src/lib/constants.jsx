@@ -28,6 +28,7 @@ export const kWalletEndpoints = 'wallet_endpoints'
 export const kTenantEndpoints = 'tenant_endpoints'
 export const kPropertyEndpoints = 'property_endpoints'
 export const kNotificationEndpoints = 'notification_endpoints'
+export const kChatEndpoints = 'chat_endpoints'
 
 /** Redux state key for user slice */
 export const kAccountSlice = 'account_slice'
