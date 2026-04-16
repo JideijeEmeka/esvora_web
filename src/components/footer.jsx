@@ -1,5 +1,14 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import {
+	kLinkedInCompanyUrl,
+	kInstagramProfileUrl,
+	kFacebookPageUrl,
+	kXTwitterProfileUrl,
+	kTikTokProfileUrl,
+	kSupportWhatsAppUrl,
+	kSupportPhoneNumber
+} from '../lib/constants'
 import logo from '../assets/logo.png'
 import facebook from '../assets/icons/facebook.png'
 import instagram from '../assets/icons/instagram.png'
@@ -12,6 +21,11 @@ import apple from '../assets/apple.png'
 import qrCode from '../assets/qr_code.png'
 
 const Footer = () => {
+	const contactPhoneDisplay = kSupportPhoneNumber.replace(
+		/^\+234(\d{3})(\d{3})(\d{4})$/,
+		'+234 $1 $2 $3'
+	)
+
 	return (
 		<footer className='border-t border-gray-200 mt-10 max-md:mt-0'>
 			<div className='mt-12'>
@@ -23,7 +37,7 @@ const Footer = () => {
 							<li><Link to="/rent" className='text-[16px] text-gray-600 hover:text-primary transition-colors'>Rent</Link></li>
 							<li><Link to="/buy" className='text-[16px] text-gray-600 hover:text-primary transition-colors'>Buy</Link></li>
 							<li><Link to="/shortlet" className='text-[16px] text-gray-600 hover:text-primary transition-colors'>Shortlet</Link></li>
-							<li><Link to="/listing" className='text-[16px] text-gray-600 hover:text-primary transition-colors'>Listing</Link></li>
+							<li><Link to="/listings" className='text-[16px] text-gray-600 hover:text-primary transition-colors'>Listings</Link></li>
 						</ul>
 					</div>
 
@@ -46,7 +60,7 @@ const Footer = () => {
 						<ul className='space-y-2'>
 							<li><Link to="/about" className='text-[16px] text-gray-600 hover:text-primary transition-colors'>About us</Link></li>
 							<li><Link to="/teams" className='text-[16px] text-gray-600 hover:text-primary transition-colors'>Teams</Link></li>
-							<li><Link to="/agents" className='text-[16px] text-gray-600 hover:text-primary transition-colors'>Our Agent</Link></li>
+							<li><Link to="/agents" className='text-[16px] text-gray-600 hover:text-primary transition-colors'>Our agents</Link></li>
 							<li><Link to="/career" className='text-[16px] text-gray-600 hover:text-primary transition-colors'>Career</Link></li>
 							<li><Link to="/contact" className='text-[16px] text-gray-600 hover:text-primary transition-colors'>Contact us</Link></li>
 						</ul>
@@ -56,10 +70,56 @@ const Footer = () => {
 					<div className='md:-ml-16 max-md:py-8'>
 						<h3 className='text-[18px] font-semibold text-gray-900 mb-4'>Socials</h3>
 						<ul className='space-y-2'>
-							<li><Link to="/linkedin" className='text-[16px] text-gray-600 hover:text-primary transition-colors'>LinkedIn</Link></li>
-							<li><Link to="/twitter" className='text-[16px] text-gray-600 hover:text-primary transition-colors'>X (Formerly twitter)</Link></li>
-							<li><Link to="/instagram" className='text-[16px] text-gray-600 hover:text-primary transition-colors'>Instagram</Link></li>
-							<li><Link to="/tiktok" className='text-[16px] text-gray-600 hover:text-primary transition-colors'>Tiktok</Link></li>
+							<li>
+								<a
+									href={kLinkedInCompanyUrl}
+									target='_blank'
+									rel='noopener noreferrer'
+									className='text-[16px] text-gray-600 hover:text-primary transition-colors'
+								>
+									LinkedIn
+								</a>
+							</li>
+							<li>
+								<a
+									href={kXTwitterProfileUrl}
+									target='_blank'
+									rel='noopener noreferrer'
+									className='text-[16px] text-gray-600 hover:text-primary transition-colors'
+								>
+									X (Formerly twitter)
+								</a>
+							</li>
+							<li>
+								<a
+									href={kInstagramProfileUrl}
+									target='_blank'
+									rel='noopener noreferrer'
+									className='text-[16px] text-gray-600 hover:text-primary transition-colors'
+								>
+									Instagram
+								</a>
+							</li>
+							<li>
+								<a
+									href={kFacebookPageUrl}
+									target='_blank'
+									rel='noopener noreferrer'
+									className='text-[16px] text-gray-600 hover:text-primary transition-colors'
+								>
+									Facebook
+								</a>
+							</li>
+							<li>
+								<a
+									href={kTikTokProfileUrl}
+									target='_blank'
+									rel='noopener noreferrer'
+									className='text-[16px] text-gray-600 hover:text-primary transition-colors'
+								>
+									Tiktok
+								</a>
+							</li>
 						</ul>
 					</div>
 
@@ -86,34 +146,71 @@ const Footer = () => {
 					<div className='flex flex-col md:flex-row items-start md:items-center justify-between gap-4'>
 						<div className='flex flex-col items-start gap-2 mb-4 max-md:mb-0'>
 							<img src={logo} alt="esvora" className='w-24 h-auto' />
-							<p className='text-[14px] text-gray-600 py-4'>© 2025 esvoragroup. All rights reserved.</p>
+							<p className='text-[14px] text-gray-600 py-4'>© 2026 esvoragroup. All rights reserved.</p>
 						</div>
 						<div className='flex items-center gap-4 max-md:mb-4'>
-							<Link to="/linkedin" className='text-gray-600 hover:text-primary transition-colors'>
+							<a
+								href={kLinkedInCompanyUrl}
+								target='_blank'
+								rel='noopener noreferrer'
+								className='text-gray-600 hover:text-primary transition-colors'
+							>
 								<img src={linkedin} alt="linkedin" className='w-5 h-5' />
-							</Link>
-							<Link to="/instagram" className='text-gray-600 hover:text-primary transition-colors'>
+							</a>
+							<a
+								href={kInstagramProfileUrl}
+								target='_blank'
+								rel='noopener noreferrer'
+								className='text-gray-600 hover:text-primary transition-colors'
+							>
 								<img src={instagram} alt="instagram" className='w-5 h-5' />
-							</Link>
-							<Link to="/twitter" className='text-gray-900 hover:text-primary transition-colors'>
-								<img src={xTwitter} alt="twitter" className='w-5 h-5' />
-							</Link>
-							<Link to="/tiktok" className='text-gray-900 hover:text-primary transition-colors'>
+							</a>
+							<a
+								href={kXTwitterProfileUrl}
+								target='_blank'
+								rel='noopener noreferrer'
+								className='text-gray-900 hover:text-primary transition-colors'
+							>
+								<img src={xTwitter} alt="X (formerly Twitter)" className='w-5 h-5' />
+							</a>
+							<a
+								href={kTikTokProfileUrl}
+								target='_blank'
+								rel='noopener noreferrer'
+								className='text-gray-900 hover:text-primary transition-colors'
+							>
 								<img src={tiktok} alt="tiktok" className='w-5 h-5' />
-							</Link>
-							<Link to="/whatsapp" className='text-gray-600 hover:text-primary transition-colors'>
+							</a>
+							<a
+								href={kSupportWhatsAppUrl}
+								target='_blank'
+								rel='noopener noreferrer'
+								className='text-gray-600 hover:text-primary transition-colors'
+							>
 								<img src={whatsapp} alt="whatsapp" className='w-5 h-5' />
-							</Link>
-							<Link to="/facebook" className='text-gray-600 hover:text-primary transition-colors'>
+							</a>
+							<a
+								href={kFacebookPageUrl}
+								target='_blank'
+								rel='noopener noreferrer'
+								className='text-gray-600 hover:text-primary transition-colors'
+							>
 								<img src={facebook} alt="facebook" className='w-5 h-5' />
-							</Link>
+							</a>
 						</div>
 					</div>
 					<p className='text-[14px] text-gray-600 max-w-4xl'>
 						Our mission is to simplify property discovery, empower home ownership, and support sustainable real estate growth in Nigeria.
 					</p>
 					<p className='text-[14px] text-gray-600 mt-2 pb-4'>
-						For inquiries, please contact us at +234 (0)1-XXX-XXXX or email support@esvora.ng.
+						For inquiries, please contact us at{' '}
+						<a
+							href={`tel:${kSupportPhoneNumber.replace(/\s/g, '')}`}
+							className='text-primary font-medium hover:underline'
+						>
+							{contactPhoneDisplay}
+						</a>
+						{' '}or email support@esvora.ng.
 					</p>
 				</div>
 			</div>
