@@ -88,6 +88,16 @@ import CreatePasswordView from './views/auth/create_password_view'
 import UpdateNameView from './views/auth/update_name_view'
 import SetAvatarView from './views/auth/set_avatar_view'
 import TermsAndConditionsView from './views/terms_and_conditions_view'
+import PrivacyPolicyView from './views/privacy_policy_view'
+import CookiesPolicyView from './views/cookies_policy_view'
+import RefundPolicyView from './views/refund_policy_view'
+import CustomerSatisfactionView from './views/customer_satisfaction_view'
+import AboutUsView from './views/about_us_view'
+import TeamsView from './views/teams_view'
+import CareerView from './views/career_view'
+import OurAgentsView from './views/our_agents_view'
+import ContactUsView from './views/contact_us_view'
+import NotFoundView from './views/not_found_view'
 
 const AUTH_PATHS = ['/', '/sign-up', '/login', '/register', '/otp', '/create-password', '/update-name', '/set-avatar', '/change-password', '/forgot-password', '/reset-password', '/forgot-password-otp', '/reset-password-success']
 
@@ -122,6 +132,7 @@ const App = () => {
         <Route path="/home" element={<HomeView />} />
         <Route path="/login" element={<LoginView />} />
         <Route path="/help" element={<HelpView />} />
+        <Route path="/contact" element={<ContactUsView />} />
         <Route path="/otp/:email" element={<OtpView />} />
         <Route path="/create-password" element={<CreatePasswordView />} />
         <Route path="/update-name" element={<UpdateNameView />} />
@@ -151,6 +162,8 @@ const App = () => {
         <Route path="/reviews" element={<ReviewsView />} />
         <Route path="/all-reviews" element={<AllPropertyReviewsView />} />
         <Route path="/my-properties" element={<Navigate to="/properties" replace />} />
+        <Route path="/listing" element={<Navigate to="/properties" replace />} />
+        <Route path="/listings" element={<Navigate to="/properties" replace />} />
         <Route
           path="/properties"
           element={
@@ -204,8 +217,17 @@ const App = () => {
         <Route path="/property-schedules/:propertyId/:scheduleId" element={<PropertyScheduleDetailsView />} />
         <Route path="/payment/:id?" element={<PaymentView />} />
         <Route path="/profile" element={<ProfileView />} />
+        <Route path="/privacy" element={<PrivacyPolicyView />} />
+        <Route path="/cookies" element={<CookiesPolicyView />} />
+        <Route path="/refund" element={<RefundPolicyView />} />
+        <Route path="/satisfaction" element={<CustomerSatisfactionView />} />
+        <Route path="/about" element={<AboutUsView />} />
+        <Route path="/teams" element={<TeamsView />} />
+        <Route path="/career" element={<CareerView />} />
+        <Route path="/agents" element={<OurAgentsView />} />
         <Route path="/terms" element={<TermsAndConditionsView onBack={() => window.history.back()} />} />
         <Route path="/landlord-details" element={<LandlordDetailsView />} />
+        <Route path="*" element={<NotFoundView />} />
       </Routes>
       <Toaster />
     </>
