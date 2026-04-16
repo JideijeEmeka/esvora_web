@@ -759,7 +759,9 @@ const PropertyOwnerMyPropertyDetailsView = () => {
                                 paymentOptions: 'Cash - Bank transfer - Card'
                               },
                               reviews: ownerReviews,
-                              from: location.pathname
+                              from: location.pathname,
+                              propertyId: String(property.id ?? property.uuid ?? id ?? ''),
+                              propertyTitle: property.title ?? property.description ?? ''
                             }
                           })
                         }}
