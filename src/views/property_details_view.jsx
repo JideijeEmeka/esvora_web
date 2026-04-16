@@ -390,6 +390,55 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
     })
   }
 
+  const goToLogin = () => {
+    window.scrollTo(0, 0)
+    navigate('/login', { state: { from: location.pathname } })
+  }
+
+  const landlordDetails = {
+    ...property.landlord,
+    dateJoined: property.landlord.joinDate || '__',
+    listingsCount: property.landlord.listedProperties ?? property.landlord.number_of_properties ?? 0,
+    number_of_properties: property.landlord.number_of_properties ?? property.landlord.listedProperties ?? 0,
+    avatar: getLandlordAvatarSrc(property.landlord.avatar, property.landlord.name || property.landlord.email || property.id),
+    rating: 4.6,
+    propertyTypes: 'Apartments, Duplexes, Studios, Lodges, etc.',
+    responseTime: 'Responds within 2 hours',
+    paymentPolicies: 'Refundable',
+    paymentOptions: 'Cash - Bank transfer - Card'
+  }
+  const currentReviewsForSidebar = (property.reviews?.length ?? 0) > 0 ? property.reviews : (fetchedReviews[String(property.id)] ?? [])
+  const sidebarCurrentWithReviews = currentReviewsForSidebar.length > 0
+    ? [{ id: property.id, title: property.title, image: property.image ?? property.images?.[0], location: property.location, reviews: currentReviewsForSidebar, reviewCount: property.reviewCount ?? currentReviewsForSidebar.length }]
+    : []
+  const sidebarRelatedWithReviews = (property.relatedProperties ?? []).filter(
+    (rp) => (rp.reviewCount ?? (rp.reviews?.length ?? 0)) > 0
+  ).map((rp) => ({
+    id: rp.id,
+    title: rp.description ?? rp.title,
+    image: rp.image,
+    location: rp.location,
+    reviews: rp.reviews ?? [],
+    reviewCount: rp.reviewCount ?? rp.reviews?.length ?? 0
+  }))
+  const sidebarPropertiesWithReviews = [...sidebarCurrentWithReviews, ...sidebarRelatedWithReviews.filter((p) => String(p.id) !== String(property.id))]
+  const sidebarReviews = sidebarPropertiesWithReviews.flatMap((p) =>
+    (p.reviews ?? []).map((r) => ({ ...r, propertyTitle: p.title, propertyId: p.id }))
+  )
+
+  const navigateToContactOwner = () => {
+    window.scrollTo(0, 0)
+    navigate('/landlord-details', {
+      state: {
+        landlord: landlordDetails,
+        reviews: sidebarReviews,
+        from: location.pathname,
+        propertyId: String(property.id ?? property.uuid ?? id ?? ''),
+        propertyTitle: property.title ?? property.description ?? ''
+      }
+    })
+  }
+
   return (
     <>
       <Navbar />
@@ -677,7 +726,15 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                         const reviews = propertiesWithReviews.flatMap((p) =>
                           (p.reviews ?? []).map((r) => ({ ...r, propertyTitle: p.title, propertyId: p.id }))
                         )
-                        navigate('/landlord-details', { state: { landlord: landlordDetails, reviews, from: location.pathname } })
+                        navigate('/landlord-details', {
+                          state: {
+                            landlord: landlordDetails,
+                            reviews,
+                            from: location.pathname,
+                            propertyId: String(property.id ?? property.uuid ?? id ?? ''),
+                            propertyTitle: property.title ?? property.description ?? ''
+                          }
+                        })
                       }}
                     />
                   </>
@@ -829,13 +886,27 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                     ) : (
                       <button
                         type='button'
-                        onClick={() => {
-                          window.scrollTo(0, 0)
-                          navigate('/login', { state: { from: location.pathname } })
-                        }}
+                        onClick={goToLogin}
                         className='w-full bg-primary text-white px-6 py-3 rounded-full hover:bg-primary/90 transition-colors font-medium text-[16px]'
                       >
                         Log in to send request
+                      </button>
+                    )}
+                    {isLoggedIn ? (
+                      <button
+                        type='button'
+                        onClick={navigateToContactOwner}
+                        className='w-full border-2 border-gray-300 text-gray-700 rounded-full px-6 py-3 hover:bg-primary/5 transition-colors font-medium text-[16px]'
+                      >
+                        Contact owner
+                      </button>
+                    ) : (
+                      <button
+                        type='button'
+                        onClick={goToLogin}
+                        className='w-full border-2 border-gray-300 text-gray-700 rounded-full px-6 py-3 hover:bg-primary/5 transition-colors font-medium text-[16px]'
+                      >
+                        Log in to contact owner
                       </button>
                     )}
                     <button
@@ -873,54 +944,11 @@ const PropertyDetailsView = ({ onlyRateProperty = false }) => {
                       </div>
                     )
                   }
-                  const goToLogin = () => {
-                    window.scrollTo(0, 0)
-                    navigate('/login', { state: { from: location.pathname } })
-                  }
-                  const landlordDetails = {
-                    ...property.landlord,
-                    dateJoined: property.landlord.joinDate || '__',
-                    listingsCount: property.landlord.listedProperties ?? property.landlord.number_of_properties ?? 0,
-                    number_of_properties: property.landlord.number_of_properties ?? property.landlord.listedProperties ?? 0,
-                    avatar: getLandlordAvatarSrc(property.landlord.avatar, property.landlord.name || property.landlord.email || property.id),
-                    rating: 4.6,
-                    propertyTypes: 'Apartments, Duplexes, Studios, Lodges, etc.',
-                    responseTime: 'Responds within 2 hours',
-                    paymentPolicies: 'Refundable',
-                    paymentOptions: 'Cash - Bank transfer - Card'
-                  }
-                  const currentReviews = (property.reviews?.length ?? 0) > 0 ? property.reviews : (fetchedReviews[String(property.id)] ?? [])
-                  const sidebarCurrentWithReviews = currentReviews.length > 0
-                    ? [{ id: property.id, title: property.title, image: property.image ?? property.images?.[0], location: property.location, reviews: currentReviews, reviewCount: property.reviewCount ?? currentReviews.length }]
-                    : []
-                  const sidebarRelatedWithReviews = (property.relatedProperties ?? []).filter(
-                    (rp) => (rp.reviewCount ?? (rp.reviews?.length ?? 0)) > 0
-                  ).map((rp) => ({
-                    id: rp.id,
-                    title: rp.description ?? rp.title,
-                    image: rp.image,
-                    location: rp.location,
-                    reviews: rp.reviews ?? [],
-                    reviewCount: rp.reviewCount ?? rp.reviews?.length ?? 0
-                  }))
-                  const sidebarPropertiesWithReviews = [...sidebarCurrentWithReviews, ...sidebarRelatedWithReviews.filter((p) => String(p.id) !== String(property.id))]
-                  const sidebarReviews = sidebarPropertiesWithReviews.flatMap((p) =>
-                    (p.reviews ?? []).map((r) => ({ ...r, propertyTitle: p.title, propertyId: p.id }))
-                  )
                   const contactOwnerButton = (
                     <button
                       key='contact'
                       type='button'
-                      onClick={() => {
-                          window.scrollTo(0, 0)
-                          navigate('/landlord-details', {
-                            state: {
-                              landlord: landlordDetails,
-                              reviews: sidebarReviews,
-                              from: location.pathname
-                            }
-                          })
-                        }}
+                      onClick={navigateToContactOwner}
                       className='w-full border-2 border-gray-300 text-gray-700 rounded-full px-6 py-3 hover:bg-primary/5 transition-colors font-medium text-[16px]'
                     >
                       Contact owner
