@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { kAuthEndpoints, kAccountSlice, kAgreementEndpoints, kAgreementSlice, kWalletEndpoints, kWalletSlice, kTenantEndpoints, kTenantSlice, kPropertyEndpoints, kPropertySlice, kNotificationEndpoints, kDeviceLocationSlice } from '../lib/constants';
+import { kAuthEndpoints, kAccountSlice, kAgreementEndpoints, kAgreementSlice, kWalletEndpoints, kWalletSlice, kTenantEndpoints, kTenantSlice, kPropertyEndpoints, kPropertySlice, kNotificationEndpoints, kChatEndpoints, kDeviceLocationSlice } from '../lib/constants';
 import { setupListeners } from '@reduxjs/toolkit/query';
 import { authApi } from '../repository/auth_repository';
 import { agreementApi } from '../repository/agreement_repository';
@@ -11,6 +11,7 @@ import tenantReducer from './slices/tenantSlice';
 import { tenantApi } from '../repository/tenant_repository';
 import { propertyApi } from '../repository/property_repository';
 import { notificationApi } from '../repository/notification_repository';
+import { chatApi } from '../repository/chat_repository';
 import propertyReducer from './slices/propertySlice';
 import deviceLocationReducer from './slices/deviceLocationSlice';
 
@@ -28,6 +29,7 @@ export const store = configureStore({
 		[kPropertyEndpoints]: propertyApi.reducer,
 		[kPropertySlice]: propertyReducer,
 		[kNotificationEndpoints]: notificationApi.reducer,
+		[kChatEndpoints]: chatApi.reducer,
 	},
 	middleware: (getDefaultMiddleware) =>
 		getDefaultMiddleware().concat(
@@ -36,7 +38,8 @@ export const store = configureStore({
 			walletApi.middleware,
 			tenantApi.middleware,
 			propertyApi.middleware,
-			notificationApi.middleware
+			notificationApi.middleware,
+			chatApi.middleware
 		),
 });
 
