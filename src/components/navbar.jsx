@@ -146,7 +146,7 @@ const Navbar = () => {
         >
           Shortlet
         </Link>
-        {/* <Link 
+        <Link 
           onClick={()=> {scrollTo(0,0), handleTabClick('message')}} 
           to="/messages" 
           className={`rounded-full px-4 py-2 transition-colors ${
@@ -154,7 +154,7 @@ const Navbar = () => {
           }`}
         >
           Message
-        </Link> */}
+        </Link>
         <Link 
           onClick={()=> {scrollTo(0,0), handleTabClick('requests')}} 
           to="/requests" 
