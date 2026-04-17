@@ -140,6 +140,23 @@ export function normalizePropertyDetails(p) {
 }
 
 /**
+ * Single-line address for chat headers and landlord navigation state.
+ * Accepts normalized property details, raw API objects, or chat `property` briefs.
+ * @param {Record<string, unknown>|null|undefined} p
+ * @returns {string}
+ */
+export function propertyAddressLine(p) {
+	if (!p || typeof p !== 'object') return ''
+	const direct = [p.fullAddress, p.full_address, p.location, p.address].find(
+		(x) => typeof x === 'string' && x.trim()
+	)
+	if (direct) return String(direct).trim()
+	const city = p.city != null ? String(p.city).trim() : ''
+	const state = p.state != null ? String(p.state).trim() : ''
+	return [city, state].filter(Boolean).join(', ')
+}
+
+/**
  * Normalize landlord request list item for RequestsView.
  */
 export function normalizeLandlordRequest(r) {
