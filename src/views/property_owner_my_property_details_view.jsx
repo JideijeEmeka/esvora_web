@@ -5,7 +5,7 @@ import PropertyOwnerNavbar from '../components/property_owner_navbar'
 import Footer from '../components/footer'
 import propertyController from '../controllers/property_controller'
 import { selectPropertyDetails } from '../redux/slices/propertySlice'
-import { normalizePropertyDetails } from '../lib/propertyUtils'
+import { normalizePropertyDetails, propertyAddressLine } from '../lib/propertyUtils'
 import { 
   Heart, 
   ChevronLeft, 
@@ -761,7 +761,8 @@ const PropertyOwnerMyPropertyDetailsView = () => {
                               reviews: ownerReviews,
                               from: location.pathname,
                               propertyId: String(property.id ?? property.uuid ?? id ?? ''),
-                              propertyTitle: property.title ?? property.description ?? ''
+                              propertyTitle: property.title ?? property.description ?? '',
+                              propertyAddress: propertyAddressLine(property)
                             }
                           })
                         }}
