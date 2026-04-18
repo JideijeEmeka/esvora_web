@@ -8,7 +8,12 @@ import Loader from '../components/loader'
 import FilterPropertiesWidget from '../components/filter_properties_widget'
 import { Search, Filter, ChevronLeft, ChevronRight, X, MapIcon } from 'lucide-react'
 import MapModal from '../components/map_modal'
-import { getPropertyTypeLabel, getStateLabel, getFurnishingLabel } from '../lib/constants'
+import {
+	getPropertyTypeLabel,
+	getStateLabel,
+	getFurnishingLabel,
+	kAffordablePropertiesHeroBgUrl
+} from '../lib/constants'
 import propertyController from '../controllers/property_controller'
 import { selectProperties } from '../redux/slices/propertySlice'
 import { normalizeProperties } from '../lib/propertyUtils'
@@ -224,7 +229,7 @@ const ShortletView = () => {
 				<div
 					className='absolute inset-0 bg-cover bg-center'
 					style={{
-						backgroundImage: `url(${allProperties[0]?.image ?? allProperties[0]?.images?.[0] ?? 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1200'})`,
+						backgroundImage: `url(${kAffordablePropertiesHeroBgUrl})`,
 						filter: 'blur(2px)',
 						transform: 'scale(1.1)'
 					}}
