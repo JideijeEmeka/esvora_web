@@ -11,7 +11,7 @@ import propertyController from '../controllers/property_controller'
 import { useGetChatsQuery } from '../repository/chat_repository'
 import { normalizeGetChatsResponse } from '../models/chatConversationModel'
 import { selectCurrentAccount } from '../redux/slices/accountSlice'
-import { normalizePropertyDetails } from '../lib/propertyUtils'
+import { normalizePropertyDetails, propertyAddressLine } from '../lib/propertyUtils'
 import { getToken } from '../lib/localStorage'
 
 const DICEBEAR_ADVENTURER = 'https://api.dicebear.com/9.x/adventurer/svg'
@@ -176,6 +176,13 @@ const MessagesView = () => {
 		return agent.includes(q) || title.includes(q) || addr.includes(q)
 	})
 
+	const chatHeaderTitle =
+		(propertyDetails?.title && String(propertyDetails.title).trim()) ||
+		(selected?.property?.title && String(selected.property.title).trim()) ||
+		'Property'
+	const chatHeaderSubtitle =
+		propertyAddressLine(propertyDetails) || propertyAddressLine(selected?.property)
+
 	const landlord = propertyDetails?.landlord
 	const displayName = landlord?.name ?? selected?.agent?.name ?? '—'
 	const displayEmail = landlord?.email ?? selected?.agent?.email ?? ''
@@ -239,8 +246,9 @@ const MessagesView = () => {
 								const isActive = selected?.id === c.id
 								const last = c.last_message
 								const preview = last?.message ? String(last.message) : 'No messages yet'
-								const label = c.agent?.name || 'Owner'
-								const sub = c.property?.title || c.property?.address || 'Property'
+								const listTitle = c.property?.title?.trim() || 'Property'
+								const listAddr = propertyAddressLine(c.property)
+								const avatarSeed = c.agent?.uuid ?? c.property?.id ?? listTitle
 								return (
 									<button
 										key={c.id}
@@ -252,15 +260,16 @@ const MessagesView = () => {
 									>
 										<div className='w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center shrink-0 overflow-hidden'>
 											<img
-												src={getLandlordAvatarSrc('', c.agent?.uuid ?? label)}
+												src={getLandlordAvatarSrc('', avatarSeed)}
 												alt=''
 												className='w-full h-full object-cover'
 											/>
 										</div>
 										<div className='flex-1 min-w-0'>
-											<p className='text-[15px] font-medium text-gray-900 truncate'>{label}</p>
+											<p className='text-[15px] font-medium text-gray-900 truncate'>{listTitle}</p>
 											<p className='text-[13px] text-gray-500 truncate'>
-												{sub} · {preview}
+												{listAddr ? `${listAddr} · ` : ''}
+												{preview}
 											</p>
 										</div>
 										<div className='shrink-0 text-[12px] text-gray-400'>
@@ -298,12 +307,8 @@ const MessagesView = () => {
 									<ChevronLeft className='w-6 h-6 text-gray-600' />
 								</button>
 								<div className='min-w-0'>
-									<h3 className='text-[18px] font-semibold text-gray-900 truncate'>
-										{selected.agent?.name ?? 'Owner'}
-									</h3>
-									<p className='text-[14px] text-gray-500 truncate'>
-										{selected.property?.title ?? selected.property?.address ?? 'Property'}
-									</p>
+									<h3 className='text-[18px] font-semibold text-gray-900 truncate'>{chatHeaderTitle}</h3>
+									<p className='text-[14px] text-gray-500 truncate'>{chatHeaderSubtitle}</p>
 								</div>
 							</div>
 							<div className='flex-1 overflow-y-auto p-6 space-y-4'>
