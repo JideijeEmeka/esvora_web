@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { ChevronLeft } from 'lucide-react'
 
 const SECTIONS = [
@@ -61,26 +61,29 @@ const SECTIONS = [
 ]
 
 const TermsAndConditionsView = ({ onBack }) => {
+	useEffect(() => {
+		window.scrollTo(0, 0)
+	}, [])
+
 	return (
 		<div className='bg-white rounded-2xl border border-gray-200 p-6 lg:p-8'>
 			{onBack && (
-				<div className='md:hidden'>
-					<button
-						type='button'
-						onClick={onBack}
-						className='flex items-center gap-2 text-[14px] font-medium text-gray-600 hover:text-gray-900 mb-6 transition-colors'
-					>
-						<ChevronLeft className='w-4 h-4' />
-						Back
-					</button>
-				</div>
+				<button
+					type='button'
+					onClick={onBack}
+					className='flex pt-20 items-center gap-2 text-[15px] font-medium text-gray-700 hover:text-gray-900 mb-6 transition-colors'
+					aria-label='Go back'
+				>
+					<ChevronLeft className='w-5 h-5 shrink-0' />
+					Back
+				</button>
 			)}
 
 			<h1 className='text-[26px] font-bold text-gray-900 mb-2'>
 				Terms and Conditions
 			</h1>
 			<p className='text-[14px] text-gray-500 mb-8'>
-				Last updated: March 2025
+				Last updated: April 2026
 			</p>
 
 			<div className='space-y-8'>
