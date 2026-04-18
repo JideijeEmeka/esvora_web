@@ -75,6 +75,7 @@ const LandlordDetailsView = () => {
 			? String(location.state.propertyId).trim()
 			: ''
 	const propertyTitle = location.state?.propertyTitle ?? ''
+	const propertyAddress = location.state?.propertyAddress ?? ''
 
 	const account = useSelector(selectCurrentAccount)
 	const myUserId = account?.id != null ? Number(account.id) : 0
@@ -476,10 +477,10 @@ const LandlordDetailsView = () => {
 							</button>
 							<div className='min-w-0 flex-1'>
 								<h3 id='landlord-message-modal-title' className='text-[18px] font-semibold text-gray-900 truncate'>
-									{landlord.name}
+									{(propertyTitle && propertyTitle.trim()) || 'Messages'}
 								</h3>
 								<p className='text-[14px] text-gray-500 truncate'>
-									{propertyTitle || landlord.email || 'Messages'}
+									{(propertyAddress && propertyAddress.trim()) || ''}
 								</p>
 							</div>
 						</div>
